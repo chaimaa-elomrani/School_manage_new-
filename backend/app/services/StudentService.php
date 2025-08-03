@@ -44,6 +44,32 @@ class StudentService{
             throw $e;
         }
     }
+    public function getStudentData($studentId) {
+    $enrollmentStmt = $this->pdo->prepare("
+        SELECT e.*, c.title as course_name, c.id as course_id
+        FROM enrollments e
+        LEFT JOIN courses c ON e.course_id = c.id
+        WHERE e.student_id = ? AND e.status = 'active'
+    ");
+    $enrollmentStmt->execute([$studentId]);
+    $enrollments = $enrollmentStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $gradeStmt = $this->pdo->prepare("
+        SELECT g.*, c.title as course_name
+        FROM grades g
+        LEFT JOIN courses c ON g.course_id = c.id
+        WHERE g.student_id = ?
+    ");
+    $gradeStmt->execute([$studentId]);
+    $grades = $gradeStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    return [
+        'student_id' => $studentId,
+        'enrollments' => $enrollments,
+        'grades' => $grades
+    ];
+}
+
     
     // explication profonde de la méthode save():
     // 1. on crée une instance de la classe PDO pour se connecter à la base de données, PDO est une classe qui permet de se connecter à la base de données

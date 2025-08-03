@@ -14,6 +14,7 @@ $router->get('/showStudent', 'StudentController@getAll');
 $router->get('/showStudent/{id}', 'StudentController@getById');
 $router->post('/updateStudent/{id}', 'StudentController@update');
 $router->delete('/deleteStudent/{id}', 'StudentController@delete');
+$router->get('/studentData/{id}' , 'StudentController@getStudentData'); 
 
 // teacher routes tested
 $router->post('/createTeacher', 'TeacherController@create');
