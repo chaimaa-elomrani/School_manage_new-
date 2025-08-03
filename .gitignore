@@ -1,0 +1,30 @@
+# Environment and configuration files
+.env
+.env.*
+/backend/.env
+/backend/config/sms.php
+*.env
+*.config.js
+
+# Dependencies
+/node_modules
+/vendor
+/backend/vendor
+/frontend/node_modules
+
+# Build outputs
+/dist
+/build
+/.next
+/out
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+Thumbs.db

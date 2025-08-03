@@ -1,0 +1,7 @@
+# This is the .gitignore file for the project
+
+# Ignore environment file
+.env
+
+# Ignore SMS configuration file
+config/sms.php
