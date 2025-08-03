@@ -1,60 +1,62 @@
-import { useState, useEffect } from 'react';
-import api from '../../services/api';
+"use client"
+
+import { useState, useEffect } from "react"
+import api from "../../services/api"
+import ScheduleAgendaTable from "./ScheduleAgendaTable"
 import { 
-  CalendarIcon,
-  ClockIcon,
-  AcademicCapIcon,
-  UserIcon,
-  BuildingOfficeIcon,
+  CalendarIcon, 
+  ViewColumnsIcon, 
+  ListBulletIcon, 
+  TableCellsIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  ViewColumnsIcon,
-  ListBulletIcon
-} from '@heroicons/react/24/outline';
+  ClockIcon,
+  UserIcon,
+  BuildingOfficeIcon,
+  AcademicCapIcon
+} from "@heroicons/react/24/outline"
 
 const ScheduleList = () => {
-  const [schedules, setSchedules] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState('week'); // 'week', 'day', 'list'
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [schedules, setSchedules] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [viewMode, setViewMode] = useState("agenda") // 'week', 'day', 'list', 'agenda'
+  const [currentDate, setCurrentDate] = useState(new Date())
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0])
 
   useEffect(() => {
-    fetchSchedules();
-  }, []);
-
-  useEffect(() => {
-    console.log('Current schedules state:', schedules);
-    console.log('Current date:', currentDate);
-    console.log('Selected date:', selectedDate);
-}, [schedules, currentDate, selectedDate]);
+    fetchSchedules()
+  }, [])
 
   const fetchSchedules = async () => {
     try {
-        setLoading(true);
-        const response = await api.get('/showSchedules');
-        console.log('Schedule response:', response.data);
-
-        if (response.data?.data) {
-            const formattedSchedules = response.data.data.map(schedule => ({
-                id: schedule.id,
-                date: new Date(schedule.date).toISOString().split('T')[0],
-                start_time: schedule.start_time,
-                end_time: schedule.end_time,
-                course_name: schedule.course_name || 'Unnamed Course',
-                teacher_name: schedule.teacher_name || 'Unassigned',
-                teacher_id: schedule.teacher_id,
-                room_number: schedule.room_number || schedule.room_id,
-                course_id: schedule.course_id
-            }));
-            setSchedules(formattedSchedules);
-        }
+      setLoading(true);
+      const response = await api.get("/showSchedules");
+      console.log("Raw schedule response:", response.data);
+      
+      const scheduleData = response.data?.data || response.data || [];
+      
+      const formattedSchedules = scheduleData.map((schedule) => ({
+        id: schedule.id,
+        date: new Date(schedule.date).toISOString().split("T")[0],
+        start_time: schedule.start_time,
+        end_time: schedule.end_time,
+        course_name: schedule.course_name || "Unnamed Course",
+        teacher_name: schedule.teacher_name || "Unassigned",
+        teacher_id: schedule.teacher_id,
+        room_number: schedule.room_number || schedule.room_id,
+        course_id: schedule.course_id,
+      }));
+      
+      console.log("Formatted schedules:", formattedSchedules);
+      setSchedules(formattedSchedules);
     } catch (error) {
-        console.error('Failed to fetch schedules:', error);
+      console.error("Failed to fetch schedules:", error);
+      setSchedules([]);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-  };
+  }
+
 
   const getWeekDates = (date) => {
     const week = [];
@@ -84,30 +86,35 @@ const ScheduleList = () => {
         && schedule.course_name;
 };
 
+  const isValidDate = (date) => {
+    return date instanceof Date && !isNaN(date);
+  };
+
   const getSchedulesForDate = (date) => {
-    if (!Array.isArray(schedules)) return [];
+    if (!date || !Array.isArray(schedules)) return [];
     
-    // Convert date to YYYY-MM-DD format for comparison
     const formattedDate = new Date(date).toISOString().split('T')[0];
-    
     return schedules.filter(schedule => {
-        // Add debug logging
-        console.log('Comparing dates:', {
-            scheduleDate: schedule.date,
-            formattedDate: formattedDate,
-            match: schedule.date === formattedDate
-        });
-        
+      try {
         return schedule.date === formattedDate;
+      } catch (err) {
+        console.error('Error comparing dates:', err);
+        return false;
+      }
     });
-};
+  };
 
   const getSchedulesForWeek = () => {
-    const weekDates = getWeekDates(currentDate);
-    return weekDates.map(date => ({
-      date,
-      schedules: getSchedulesForDate(date)
-    }));
+    try {
+      const weekDates = getWeekDates(currentDate);
+      return weekDates.map(date => ({
+        date,
+        schedules: getSchedulesForDate(date)
+      }));
+    } catch (err) {
+      console.error('Error getting week schedules:', err);
+      return [];
+    }
   };
 
   const formatTime = (time) => {
@@ -140,14 +147,26 @@ const ScheduleList = () => {
     newDate.setDate(newDate.getDate() + direction);
     setSelectedDate(newDate.toISOString().split('T')[0]);
   };
-
-  if (loading) {
+if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
       </div>
+    )
+  }
+
+  // Add this before the return statement
+  if (!Array.isArray(schedules)) {
+    console.error('Invalid schedules data:', schedules);
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-500">Error loading schedules</p>
+      </div>
     );
   }
+
+  // In ScheduleList.jsx, before rendering ScheduleAgendaTable
+  console.log("Passing schedules to AgendaTable:", schedules);
 
   return (
     <div className="space-y-6">
@@ -157,37 +176,40 @@ const ScheduleList = () => {
           <h1 className="text-2xl font-bold text-gray-900">Schedule Management</h1>
           <p className="text-gray-600">View and manage class schedules</p>
         </div>
-        
+
         {/* View Mode Toggle */}
         <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
           <button
-            onClick={() => setViewMode('week')}
+            onClick={() => setViewMode("agenda")}
             className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-              viewMode === 'week' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
+              viewMode === "agenda" ? "bg-white text-blue-600 shadow-sm" : "text-gray-600 hover:text-gray-900"
+            }`}
+          >
+            <TableCellsIcon className="h-4 w-4 inline mr-1" />
+            Agenda
+          </button>
+          <button
+            onClick={() => setViewMode("week")}
+            className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+              viewMode === "week" ? "bg-white text-blue-600 shadow-sm" : "text-gray-600 hover:text-gray-900"
             }`}
           >
             <ViewColumnsIcon className="h-4 w-4 inline mr-1" />
             Week
           </button>
           <button
-            onClick={() => setViewMode('day')}
+            onClick={() => setViewMode("day")}
             className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-              viewMode === 'day' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
+              viewMode === "day" ? "bg-white text-blue-600 shadow-sm" : "text-gray-600 hover:text-gray-900"
             }`}
           >
             <CalendarIcon className="h-4 w-4 inline mr-1" />
             Day
           </button>
           <button
-            onClick={() => setViewMode('list')}
+            onClick={() => setViewMode("list")}
             className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-              viewMode === 'list' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
+              viewMode === "list" ? "bg-white text-blue-600 shadow-sm" : "text-gray-600 hover:text-gray-900"
             }`}
           >
             <ListBulletIcon className="h-4 w-4 inline mr-1" />
@@ -195,11 +217,24 @@ const ScheduleList = () => {
           </button>
         </div>
       </div>
+        {/* Agenda View */}
+      {viewMode === "agenda" && (
+        <>
+          {schedules.length > 0 ? (
+            <ScheduleAgendaTable schedules={schedules} />
+          ) : (
+            <div className="text-center py-12 bg-white rounded-lg shadow">
+              <CalendarIcon className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+              <p className="text-gray-500 text-lg font-medium">No schedules found</p>
+              <p className="text-gray-400 text-sm">Add some schedules to see them here</p>
+            </div>
+          )}
+        </>
+      )}
 
       {/* Week View */}
       {viewMode === 'week' && (
         <div className="bg-white rounded-lg shadow">
-          {/* Week Navigation */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <button
               onClick={() => navigateWeek(-1)}
@@ -218,7 +253,6 @@ const ScheduleList = () => {
             </button>
           </div>
 
-          {/* Week Grid */}
           <div className="grid grid-cols-7 gap-px bg-gray-200">
             {getSchedulesForWeek().map(({ date, schedules: daySchedules }) => (
               <div key={date} className="bg-white min-h-[300px] p-3">
@@ -227,33 +261,21 @@ const ScheduleList = () => {
                   <div className="text-xs text-gray-500">{getDateDisplay(date)}</div>
                 </div>
                 <div className="space-y-2">
-                  {daySchedules.map((schedule) => (
-                    <div
-                      key={schedule.id}
-                      className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-3 rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 cursor-pointer border-l-4 border-blue-300"
-                    >
-                      <div className="text-sm font-bold mb-2 truncate">
-                        {schedule.course_name}
+                  {Array.isArray(daySchedules) && daySchedules.length > 0 ? (
+                    daySchedules.map((schedule) => (
+                      <div
+                        key={schedule.id}
+                        className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-2 rounded-lg shadow-sm"
+                      >
+                        <div className="text-sm font-semibold truncate">{schedule.course_name}</div>
+                        <div className="text-xs mt-1 flex items-center">
+                          <ClockIcon className="h-3 w-3 mr-1" />
+                          {formatTime(schedule.start_time)}
+                        </div>
                       </div>
-                      <div className="text-xs flex items-center mb-1 opacity-90">
-                        <ClockIcon className="h-3 w-3 mr-1" />
-                        {formatTime(schedule.start_time)} - {formatTime(schedule.end_time)}
-                      </div>
-                      <div className="text-xs flex items-center opacity-90">
-                        <BuildingOfficeIcon className="h-3 w-3 mr-1" />
-                        Room {schedule.room_number}
-                      </div>
-                      <div className="text-xs flex items-center mt-1 opacity-90">
-                        <UserIcon className="h-3 w-3 mr-1" />
-                        {schedule.teacher_name}
-                      </div>
-                    </div>
-                  ))}
-                  {daySchedules.length === 0 && (
-                    <div className="text-center py-8">
-                      <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-gray-100 flex items-center justify-center">
-                        <CalendarIcon className="h-4 w-4 text-gray-400" />
-                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-4">
                       <p className="text-xs text-gray-400">No classes</p>
                     </div>
                   )}
