@@ -22,7 +22,14 @@ class EmailChannel implements IEmailChannel
 
         try {
             // Server settings
-         
+            $mail->isSMTP();
+            $mail->Host = 'smtp.gmail.com';
+            $mail->SMTPAuth = true;
+            $mail->Username = 'chaimaelomrani6@gmail.com'; // PUT YOUR REAL EMAIL HERE
+            $mail->Password = 'ryesdmadagrpmfuo';    // PUT YOUR APP PASSWORD HERE
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port = 587;
+
             // Recipients
             $mail->setFrom('chaimaelomrani6@gmail.com', 'School Management');
             $mail->addAddress($to);
@@ -47,7 +54,4 @@ class EmailChannel implements IEmailChannel
         return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
     }
 }
-
-
-
 

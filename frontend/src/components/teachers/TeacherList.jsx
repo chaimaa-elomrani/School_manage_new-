@@ -32,9 +32,18 @@ const TeacherList = () => {
     try {
       setLoading(true);
       const response = await api.get('/showTeacher');
-      setTeachers(response.data.data || []);
+      console.log('Teachers response:', response.data); // Add this for debugging
+      if (response.data?.data && Array.isArray(response.data.data)) {
+        setTeachers(response.data.data);
+      } else if (Array.isArray(response.data)) {
+        setTeachers(response.data);
+      } else {
+        console.error('Invalid teacher data format:', response.data);
+        setTeachers([]);
+      }
     } catch (err) {
       console.error('Fetch teachers error:', err);
+      setTeachers([]);
     } finally {
       setLoading(false);
     }
@@ -45,7 +54,7 @@ const TeacherList = () => {
     try {
       await api.post('/createTeacher', formData);
       setShowModal(false);
-      resetForm();
+      resetForm();  
       fetchTeachers();
       alert('Teacher created successfully!');
     } catch (err) {

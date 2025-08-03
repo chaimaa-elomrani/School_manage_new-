@@ -6,20 +6,22 @@ require_once __DIR__ . '/../config/db.php';
 use Core\Router;
 use App\Middleware\CorsMiddleware;
 
-// Handle CORS
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
+// Handle CORS 
+$corsMiddleware = new CorsMiddleware();
+$corsMiddleware->handle();
 
+// Enable error reporting for debugging
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/../logs/error.log');
 
-$corsMiddleware = new CorsMiddleware();
-$corsMiddleware->handle();
-
+// Initialize router
 $router = new Router();
-
 require_once __DIR__ . '/../routes/web.php';
-$router->dispatch($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD']);
+
+// Remove /backend from request URI if present
+$requestUri = str_replace('/backend', '', $_SERVER['REQUEST_URI']);
+
+// Dispatch the route
+$router->dispatch($requestUri, $_SERVER['REQUEST_METHOD']);

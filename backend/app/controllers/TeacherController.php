@@ -10,14 +10,15 @@ use Core\Db;
 class TeacherController{
     private $teacherService;
 
-    public function __construct(TeacherService $teacherService = null){
-        if ($teacherService) {
-            $this->teacherService = $teacherService;
-        } else {
-            $pdo = Db::connection();
-            $this->teacherService = new TeacherService($pdo);
-        }
+   public function __construct(?TeacherService $teacherService = null){
+    if ($teacherService === null) {
+        $pdo = Db::connection();
+        $this->teacherService = new TeacherService($pdo);
+    } else {
+        $this->teacherService = $teacherService;
     }
+}
+
 
     public function create(){
         $input = json_decode(file_get_contents('php://input'), true);

@@ -139,18 +139,10 @@ $router->get('/showStudent', 'StudentController@getAll');
 $router->post('/createStudent', 'StudentController@create');
 
 // Teacher routes
-$router->get('/showTeacher', 'TeacherController@getAll');
-$router->post('/createTeacher', 'TeacherController@create');
 
 // Course routes
 $router->get('/showCourses', 'CourseController@getAll');
 $router->post('/createCourse', 'CourseController@create');
 
-// Communication routes
-$router->post('/communication/email', 'CommunicationController@sendEmailNotification');
-$router->post('/communication/sms', 'CommunicationController@sendSMSNotification');
-$router->post('/communication/message', 'CommunicationController@sendInternalMessage');
-$router->post('/communication/broadcast', 'CommunicationController@broadcastNotification');
 
-// Subject routes
 $router->get('/showSubjects', 'SubjectController@getAll');
