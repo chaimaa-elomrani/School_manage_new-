@@ -46,4 +46,30 @@ class FinancialService implements IFinancialService
             'report_type' => 'payment_summary'
         ];
     }
+    
+    public function getAllPayments(): array
+    {
+        try {
+            $payments = $this->paymentRepository->getAll();
+            
+            // Transform the payments to include all necessary data
+            return array_map(function($payment) {
+                return [
+                    'id' => $payment->id,
+                    'student_id' => $payment->student_id,
+                    'amount' => number_format($payment->amount, 2, '.', ''),
+                    'status' => $payment->status,
+                    'payment_date' => $payment->payment_date,
+                    'due_date' => $payment->due_date,
+                    'fee_name' => $payment->fee_name,
+                    'student_name' => $payment->student ? 
+                        $payment->student->first_name . ' ' . $payment->student->last_name : 
+                        'Unknown Student'
+                ];
+            }, $payments);
+        } catch (\Exception $e) {
+            error_log('Error fetching payments: ' . $e->getMessage());
+            return [];
+        }
+    }
 }

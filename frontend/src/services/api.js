@@ -12,8 +12,10 @@ import axios from 'axios';
 // the token is used to authenticate the user
 
 
+// Add timeout and better error handling
 const api = axios.create({
     baseURL: 'http://localhost:8000',
+    timeout: 30000,  // Increased timeout for email sending
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
@@ -23,7 +25,13 @@ const api = axios.create({
 // Add request interceptor
 api.interceptors.request.use(
     (config) => {
-        console.log('API Request:', config);
+        // Add special handling for email requests
+        if (config.url?.includes('/sendEmail')) {
+            console.log('Preparing email request:', {
+                url: config.url,
+                data: config.data
+            });
+        }
         return config;
     },
     (error) => {
@@ -32,15 +40,27 @@ api.interceptors.request.use(
     }
 );
 
-// Add response interceptor
+// Improve error interceptor
 api.interceptors.response.use(
     (response) => {
-        console.log('API Response:', response);
+        if (response.config.url?.includes('/sendEmail')) {
+            console.log('Email sent successfully:', response.data);
+        }
         return response;
     },
     (error) => {
-        console.error('API Response Error:', error);
-        return Promise.reject(error);
+        // Detailed error logging for email failures
+        if (error.config?.url?.includes('/sendEmail')) {
+            console.error('Email Send Error:', {
+                status: error.response?.status,
+                message: error.response?.data?.error || error.message,
+                details: error.response?.data?.details,
+                rawError: error.response?.data
+            });
+            throw new Error(`Email sending failed: ${error.response?.data?.error || error.message}`);
+        }
+        
+        throw error;
     }
 );
 

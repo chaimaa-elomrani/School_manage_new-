@@ -17,53 +17,63 @@ class CommunicationController
 
     public function __construct()
     {
-        $pdo = Db::connection();
-        
-        // Load configurations
-        $emailConfig = include __DIR__ . '/../../config/email.php';
-        $smsConfig = include __DIR__ . '/../../config/sms.php';
-        
-        // Initialize channels and services
-        $emailChannel = new EmailChannel($emailConfig);
-        $smsChannel = new SMSChannel();
-        $messagingService = new MessagingService($pdo);
-        $notificationService = new NotificationService($pdo);
-        
-        // Initialize facade
-        $this->communicationFacade = new CommunicationFacade(
-            $emailChannel,
-            $smsChannel,
-            $messagingService,
-            $notificationService,
-            $pdo
-        );
+        try {
+            $pdo = Db::connection();
+            
+            // Load configurations with error handling
+            $emailConfigPath = __DIR__ . '/../../config/email.php';
+            $smsConfigPath = __DIR__ . '/../../config/sms.php';
+            
+            $emailConfig = file_exists($emailConfigPath) ? include $emailConfigPath : [];
+            $smsConfig = file_exists($smsConfigPath) ? include $smsConfigPath : [];
+            
+            if (empty($emailConfig) || empty($smsConfig)) {
+                error_log('Warning: Missing or empty configuration files');
+            }
+            
+            // Initialize services
+            $this->emailChannel = new EmailChannel($emailConfig);
+            $this->smsChannel = new SMSChannel();
+            $this->messagingService = new MessagingService($pdo);
+            
+        } catch (\Exception $e) {
+            error_log('CommunicationController initialization error: ' . $e->getMessage());
+            throw $e;
+        }
     }
 
     public function sendEmailNotification()
     {
         try {
+            // Set headers first
+            header('Content-Type: application/json');
+            header('Access-Control-Allow-Origin: *');
+            header('Access-Control-Allow-Methods: POST, OPTIONS');
+            header('Access-Control-Allow-Headers: Content-Type');
+
             $input = json_decode(file_get_contents('php://input'), true);
             
             if (!isset($input['email'], $input['title'], $input['message'])) {
                 throw new \Exception('Missing required fields');
             }
 
-            // Configure PHPMailer
-            $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
-            $mail->isSMTP();
-            $mail->Host = 'smtp.gmail.com'; // Update with your SMTP server
-            $mail->SMTPAuth = true;
-            $mail->Username = 'your-email@gmail.com'; // Update with your email
-            $mail->Password = 'your-password'; // Update with your password
-            $mail->SMTPSecure = 'tls';
-            $mail->Port = 587;
+            // Load email config
+            $emailConfig = require __DIR__ . '/../../config/email.php';
+            $emailChannel = new EmailChannel($emailConfig);
 
-            $mail->setFrom('your-email@gmail.com', 'School System');
-            $mail->addAddress($input['email']);
-            $mail->Subject = $input['title'];
-            $mail->Body = $input['message'];
+            // Validate email
+            if (!$emailChannel->validateEmail($input['email'])) {
+                throw new \Exception('Invalid email address');
+            }
 
-            if ($mail->send()) {
+            // Send email
+            $result = $emailChannel->sendEmail(
+                $input['email'],
+                $input['title'],
+                $input['message']
+            );
+
+            if ($result) {
                 echo json_encode([
                     'success' => true,
                     'message' => 'Email sent successfully'
@@ -93,7 +103,7 @@ class CommunicationController
                 throw new \Exception('Missing required fields');
             }
 
-            $smsChannel = new \App\Services\SMSChannel();
+            $smsChannel = new SMSChannel();
             $result = $smsChannel->sendSMS(
                 $input['phone'],
                 $input['message']

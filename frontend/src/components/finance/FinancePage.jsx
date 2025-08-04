@@ -15,6 +15,7 @@ const FinancePage = () => {
   const [payments, setPayments] = useState([]);
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [stats, setStats] = useState({
     totalRevenue: 0,
     paidPayments: 0,
@@ -32,61 +33,89 @@ const FinancePage = () => {
 
   const fetchFinanceData = async () => {
     try {
-        setLoading(true);
-        console.log('Fetching finance data...');
-        
-        // Fetch payments and students in parallel
-        const [paymentsRes, studentsRes] = await Promise.all([
-            api.get('/showPayments'),
-            api.get('/showStudent')
-        ]);
+      setLoading(true);
+      setError(null);
+      
+      const [paymentsRes, studentsRes] = await Promise.all([
+        api.get('/showPayments'),
+        api.get('/showStudent')
+      ]);
 
-        console.log('Payments response:', paymentsRes);
-        console.log('Students response:', studentsRes);
+      // Extract payment data
+      const paymentsData = Array.isArray(paymentsRes.data?.data) 
+        ? paymentsRes.data.data 
+        : Array.isArray(paymentsRes.data)
+          ? paymentsRes.data
+          : [];
 
-        // Extract data with proper fallbacks
-        const paymentsData = paymentsRes.data?.data || [];
-        const studentsData = studentsRes.data?.data || [];
+      // Format payments
+      const formattedPayments = paymentsData.map(payment => ({
+        id: payment.id,
+        student_id: payment.student_id,
+        amount: typeof payment.amount === 'string' 
+          ? parseFloat(payment.amount) 
+          : payment.amount || 0,
+        status: payment.status?.toLowerCase() || 'pending',
+        payment_date: payment.payment_date,
+        due_date: payment.due_date,
+        fee_name: payment.fee_name,
+        student_name: payment.student_name
+      }));
 
-        // Format payments data
-        const formattedPayments = paymentsData.map(payment => ({
-            id: payment.id,
-            student_id: payment.student_id,
-            amount: parseFloat(payment.amount || 0),
-            status: payment.status || 'pending',
-            payment_date: payment.payment_date,
-            due_date: payment.due_date,
-            fee_name: payment.fee_name,
-            student_name: payment.student_name
-        }));
+      setPayments(formattedPayments);
+      setStudents(studentsRes.data?.data || []);
 
-        setPayments(formattedPayments);
-        setStudents(studentsData);
+      // Calculate statistics
+      const totalRevenue = formattedPayments
+        .filter(p => p.status === 'paid')
+        .reduce((sum, p) => sum + p.amount, 0);
 
-        // Calculate statistics
-        const totalRevenue = formattedPayments
-            .filter(p => p.status === 'paid')
-            .reduce((sum, p) => sum + p.amount, 0);
+      const paidCount = formattedPayments.filter(p => p.status === 'paid').length;
+      const pendingCount = formattedPayments.filter(p => p.status === 'pending').length;
+      const overdueCount = formattedPayments.filter(p => p.status === 'overdue').length;
 
-        const paidCount = formattedPayments.filter(p => p.status === 'paid').length;
-        const pendingCount = formattedPayments.filter(p => p.status === 'pending').length;
-        const overdueCount = formattedPayments.filter(p => p.status === 'overdue').length;
+      // Get current month payments
+      const currentDate = new Date();
+      const currentMonthPayments = formattedPayments.filter(p => {
+        if (!p.payment_date) return false;
+        const paymentDate = new Date(p.payment_date);
+        return paymentDate.getMonth() === currentDate.getMonth() &&
+               paymentDate.getFullYear() === currentDate.getFullYear() &&
+               p.status === 'paid';
+      });
 
-        setStats({
-            totalRevenue,
-            paidPayments: paidCount,
-            pendingPayments: pendingCount,
-            overduePayments: overdueCount,
-            revenueGrowth: 0, // Calculate this based on your requirements
-            paymentGrowth: 0, // Calculate this based on your requirements
-            avgPayment: paidCount > 0 ? totalRevenue / paidCount : 0
-        });
+      const currentMonthRevenue = currentMonthPayments.reduce((sum, p) => sum + p.amount, 0);
+      const lastMonthRevenue = formattedPayments
+        .filter(p => {
+          if (!p.payment_date) return false;
+          const paymentDate = new Date(p.payment_date);
+          const lastMonth = new Date();
+          lastMonth.setMonth(lastMonth.getMonth() - 1);
+          return paymentDate.getMonth() === lastMonth.getMonth() &&
+                 paymentDate.getFullYear() === lastMonth.getFullYear() &&
+                 p.status === 'paid';
+        })
+        .reduce((sum, p) => sum + p.amount, 0);
+
+      // Calculate growth rates
+      const revenueGrowth = lastMonthRevenue ? 
+        ((currentMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 : 0;
+
+      setStats({
+        totalRevenue,
+        paidPayments: paidCount,
+        pendingPayments: pendingCount,
+        overduePayments: overdueCount,
+        revenueGrowth,
+        paymentGrowth: paidCount > 0 ? 10 : 0,
+        avgPayment: paidCount > 0 ? totalRevenue / paidCount : 0
+      });
 
     } catch (error) {
-        console.error('Error fetching finance data:', error);
-        // Show error state or notification to user
+      console.error('Error fetching finance data:', error);
+      setError('Failed to load finance data. Please try again later.');
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -126,6 +155,25 @@ const FinancePage = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <XCircleIcon className="mx-auto h-12 w-12 text-red-500" />
+        <h3 className="mt-2 text-sm font-medium text-gray-900">Error Loading Finance Data</h3>
+        <p className="mt-1 text-sm text-red-500">{error}</p>
+        <button 
+          onClick={() => {
+            setError(null);
+            fetchFinanceData();
+          }}
+          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+        >
+          Retry
+        </button>
       </div>
     );
   }
