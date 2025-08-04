@@ -7,15 +7,15 @@ use Core\Db;
 
 class AuthController
 {
-    private $authService;
+    private AuthService $authService;
 
-    public function __construct(AuthService $authService = null)
+    public function __construct(?AuthService $authService = null)
     {
-        if ($authService) {
-            $this->authService = $authService;
-        } else {
+        if ($authService === null) {
             $pdo = Db::connection();
             $this->authService = new AuthService($pdo);
+        } else {
+            $this->authService = $authService;
         }
     }
 
@@ -47,30 +47,38 @@ class AuthController
 
     public function login()
     {
-        $input = json_decode(file_get_contents('php://input'), true);
-        
-        if (!$input) {
-            http_response_code(400);
-            echo json_encode(['error' => 'Invalid JSON data']);
-            return;
-        }
-
-        if (!isset($input['email']) || !isset($input['password'])) {
-            http_response_code(400);
-            echo json_encode(['error' => 'Email and password are required']);
-            return;
-        }
-
         try {
-            $result = $this->authService->login($input['email'], $input['password']);
-            http_response_code(200);
+            // Set headers
+            header('Content-Type: application/json');
+            header('Access-Control-Allow-Origin: *');
+            header('Access-Control-Allow-Methods: POST, OPTIONS');
+            header('Access-Control-Allow-Headers: Content-Type');
+
+            // Get request body
+            $data = json_decode(file_get_contents('php://input'), true);
+
+            if (!isset($data['email']) || !isset($data['password'])) {
+                throw new \Exception('Email and password are required');
+            }
+
+            // Attempt login
+            $result = $this->authService->login($data['email'], $data['password']);
+
+            if (!$result) {
+                throw new \Exception('Invalid credentials');
+            }
+
             echo json_encode([
-                'message' => 'Login successful',
+                'success' => true,
                 'data' => $result
             ]);
+
         } catch (\Exception $e) {
             http_response_code(401);
-            echo json_encode(['error' => $e->getMessage()]);
+            echo json_encode([
+                'success' => false,
+                'error' => $e->getMessage()
+            ]);
         }
     }
 

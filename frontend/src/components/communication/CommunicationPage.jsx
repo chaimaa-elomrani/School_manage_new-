@@ -117,18 +117,27 @@ const CommunicationPage = () => {
   const sendEmailNotification = async (e) => {
     e.preventDefault();
     setSendingNotification(true);
+    setError('');
+
     try {
         const response = await api.post('/communication/email', emailForm);
-        if (response.data.success) {
+        
+        // Check if the email was actually sent
+        if (response.data?.success) {
             toast.success('Email sent successfully!');
-            setEmailForm({ email: '', title: '', message: '' });
-            await fetchData();
+            // Reset form
+            setEmailForm({
+                email: '',
+                title: '',
+                message: ''
+            });
         } else {
-            toast.error(response.data.message || 'Failed to send email');
+            throw new Error(response.data?.error || 'Failed to send email');
         }
-    } catch (error) {
-        console.error('Email error:', error);
-        toast.error(error.response?.data?.error || 'Error sending email');
+    } catch (err) {
+        console.error('Email error:', err);
+        toast.error(err.message || 'Failed to send email');
+        setError(err.message || 'Failed to send email');
     } finally {
         setSendingNotification(false);
     }

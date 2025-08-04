@@ -45,7 +45,7 @@ class CommunicationController
     public function sendEmailNotification()
     {
         try {
-            // Set headers first
+            // Set headers
             header('Content-Type: application/json');
             header('Access-Control-Allow-Origin: *');
             header('Access-Control-Allow-Methods: POST, OPTIONS');
@@ -73,6 +73,7 @@ class CommunicationController
                 $input['message']
             );
 
+            // Only return success if email was actually sent
             if ($result) {
                 echo json_encode([
                     'success' => true,

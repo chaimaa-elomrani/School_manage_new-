@@ -15,6 +15,12 @@ $router->get('/showStudent/{id}', 'StudentController@getById');
 $router->post('/updateStudent/{id}', 'StudentController@update');
 $router->delete('/deleteStudent/{id}', 'StudentController@delete');
 $router->get('/studentData/{id}' , 'StudentController@getStudentData'); 
+$router->get('/getStudentData/{id}', 'StudentController@getStudentData');
+$router->get('/getClassTeachers/{classId}', 'StudentController@getClassTeachers');
+$router->get('/getClassmates/{classId}', 'StudentController@getClassmates');
+$router->get('/getStudentSchedule/{studentId}', 'ScheduleController@getStudentSchedule');
+$router->get('/getStudentEvaluations/{studentId}', 'EvaluationController@getStudentEvaluations');
+$router->get('/getStudentGrades/{studentId}', 'GradesController@getStudentGrades');
 
 // teacher routes tested
 $router->post('/createTeacher', 'TeacherController@create');

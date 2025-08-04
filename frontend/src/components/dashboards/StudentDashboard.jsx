@@ -4,19 +4,23 @@ import api from '../../services/api';
 import { 
   BookOpenIcon, 
   ClockIcon, 
-  CheckCircleIcon, 
-  ExclamationTriangleIcon 
+  UserGroupIcon, 
+  AcademicCapIcon,
+  DocumentTextIcon 
 } from '@heroicons/react/24/outline';
 
 const StudentDashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({
-    enrolledCourses: 0,
-    upcomingClasses: 0,
-    completedAssignments: 0,
-    pendingAssignments: 0
+    myTeachers: 0,
+    myClassmates: 0,
+    coursesCount: 0,
+    evaluationsCount: 0
   });
-  const [todaySchedule, setTodaySchedule] = useState([]);
+  const [schedules, setSchedules] = useState([]);
+  const [teachers, setTeachers] = useState([]);
+  const [classmates, setClassmates] = useState([]);
+  const [evaluations, setEvaluations] = useState([]);
   const [grades, setGrades] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -31,70 +35,125 @@ const StudentDashboard = () => {
     try {
       setLoading(true);
       
-      // Fetch student's data with proper error handling
-      const [schedulesRes, gradesRes, coursesRes, enrollmentsRes] = await Promise.all([
-        api.get('/showSchedules').catch(err => ({ data: [] })),
-        api.get('/showGrades').catch(err => ({ data: [] })),
-        api.get('/showCourses').catch(err => ({ data: [] })),
-        api.get('/showEnrollments').catch(err => ({ data: [] }))
+      // Get student's class first
+      const studentRes = await api.get(`/getStudentData/${user.id}`);
+      const classId = studentRes.data?.class_id;
+
+      if (!classId) {
+        throw new Error('Student class not found');
+      }
+
+      // Fetch all related data
+      const [
+        scheduleRes,
+        teachersRes,
+        classmatesRes,
+        evaluationsRes,
+        gradesRes
+      ] = await Promise.all([
+        api.get(`/getStudentSchedule/${user.id}`),
+        api.get(`/getClassTeachers/${classId}`),
+        api.get(`/getClassmates/${classId}`),
+        api.get(`/getStudentEvaluations/${user.id}`),
+        api.get(`/getStudentGrades/${user.id}`)
       ]);
 
-      // Extract data arrays properly
-      const schedules = schedulesRes.data?.data || schedulesRes.data || [];
-      const allGrades = gradesRes.data?.data || gradesRes.data || [];
-      const allCourses = coursesRes.data?.data || coursesRes.data || [];
-      const allEnrollments = enrollmentsRes.data?.data || enrollmentsRes.data || [];
+      // Process the data
+      const scheduleData = scheduleRes.data?.data || [];
+      const teacherData = teachersRes.data?.data || [];
+      const classmateData = classmatesRes.data?.data || [];
+      const evaluationData = evaluationsRes.data?.data || [];
+      const gradeData = gradesRes.data?.data || [];
 
-      // Filter enrollments for current student
-      const studentEnrollments = allEnrollments.filter(enrollment => 
-        enrollment.student_id === user.id && enrollment.status === 'active'
-      );
+      // Set states
+      setSchedules(scheduleData);
+      setTeachers(teacherData);
+      setClassmates(classmateData.filter(c => c.id !== user.id));
+      setEvaluations(evaluationData);
+      setGrades(gradeData);
 
-      // Get course IDs from student's enrollments
-      const studentCourseIds = studentEnrollments.map(enrollment => enrollment.course_id);
-      
-      // Filter courses for enrolled courses
-      const enrolledCourses = allCourses.filter(course => 
-        studentCourseIds.includes(course.id)
-      );
-
-      // Filter grades for current student
-      const studentGrades = allGrades.filter(grade => 
-        grade.student_id === user.id
-      );
-
-      // Get today's date in YYYY-MM-DD format
-      const today = new Date().toISOString().split('T')[0];
-      const todayClasses = schedules.filter(schedule => 
-        schedule.date === today && studentCourseIds.includes(schedule.course_id)
-      );
-
-      // Count completed vs pending assignments
-      const completedAssignments = studentGrades.filter(grade => grade.score !== null).length;
-      const pendingAssignments = studentGrades.filter(grade => grade.score === null).length;
-
+      // Update stats
       setStats({
-        enrolledCourses: enrolledCourses.length,
-        upcomingClasses: todayClasses.length,
-        completedAssignments,
-        pendingAssignments
+        myTeachers: teacherData.length,
+        myClassmates: classmateData.length - 1,
+        coursesCount: new Set(scheduleData.map(s => s.course_id)).size,
+        evaluationsCount: evaluationData.length
       });
 
-      setTodaySchedule(todayClasses);
-      setGrades(studentGrades.slice(0, 5)); // Recent grades
-
     } catch (err) {
-      setError('Failed to fetch student data');
-      console.error('Student dashboard error:', err);
+      console.error('Error fetching student data:', err);
+      setError(err.message || 'Failed to fetch student data');
     } finally {
       setLoading(false);
     }
   };
 
+  // Render methods
+  const renderTeachersList = () => (
+    <div className="bg-white rounded-lg shadow p-6">
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">My Teachers</h3>
+      <div className="space-y-3">
+        {teachers.map(teacher => (
+          <div key={teacher.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+              <span className="text-blue-600 font-medium">
+                {teacher.nom?.charAt(0)}{teacher.prenom?.charAt(0)}
+              </span>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-900">{`${teacher.nom} ${teacher.prenom}`}</p>
+              <p className="text-xs text-gray-500">{teacher.specialite}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderSchedule = () => (
+    <div className="bg-white rounded-lg shadow p-6">
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">My Schedule</h3>
+      <div className="space-y-3">
+        {schedules.map(schedule => (
+          <div key={schedule.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+            <div className="text-sm font-medium text-blue-600">
+              {schedule.start_time} - {schedule.end_time}
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-900">{schedule.course_name}</p>
+              <p className="text-xs text-gray-500">Room {schedule.room_number}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderGrades = () => (
+    <div className="bg-white rounded-lg shadow p-6">
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Grades</h3>
+      <div className="space-y-3">
+        {grades.map(grade => (
+          <div key={grade.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+            <div className={`w-2 h-full rounded-full ${
+              grade.note >= 16 ? 'bg-green-500' : 
+              grade.note >= 12 ? 'bg-yellow-500' : 
+              'bg-red-500'
+            }`} />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-900">{grade.course_name}</p>
+              <p className="text-xs text-gray-500">Grade: {grade.note}/20</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" />
       </div>
     );
   }
@@ -113,43 +172,41 @@ const StudentDashboard = () => {
     );
   }
 
-  const statCards = [
-    {
-      title: 'Enrolled Courses',
-      value: stats.enrolledCourses,
-      icon: BookOpenIcon,
-      color: 'bg-blue-500'
-    },
-    {
-      title: 'Today\'s Classes',
-      value: stats.upcomingClasses,
-      icon: ClockIcon,
-      color: 'bg-green-500'
-    },
-    {
-      title: 'Completed Assignments',
-      value: stats.completedAssignments,
-      icon: CheckCircleIcon,
-      color: 'bg-purple-500'
-    },
-    {
-      title: 'Pending Assignments',
-      value: stats.pendingAssignments,
-      icon: ExclamationTriangleIcon,
-      color: 'bg-orange-500'
-    }
-  ];
-
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Student Dashboard</h1>
-        <p className="text-gray-600">Welcome back, {user?.nom}! Track your academic progress.</p>
+        <p className="text-gray-600">Welcome back, {user?.nom}!</p>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {statCards.map((stat, index) => {
+        {[
+          {
+            title: 'My Teachers',
+            value: stats.myTeachers,
+            icon: AcademicCapIcon,
+            color: 'bg-blue-500'
+          },
+          {
+            title: 'Classmates',
+            value: stats.myClassmates,
+            icon: UserGroupIcon,
+            color: 'bg-green-500'
+          },
+          {
+            title: 'My Courses',
+            value: stats.coursesCount,
+            icon: BookOpenIcon,
+            color: 'bg-purple-500'
+          },
+          {
+            title: 'Evaluations',
+            value: stats.evaluationsCount,
+            icon: DocumentTextIcon,
+            color: 'bg-yellow-500'
+          }
+        ].map((stat, index) => {
           const Icon = stat.icon;
           return (
             <div key={index} className="bg-white rounded-lg shadow p-6">
@@ -167,55 +224,15 @@ const StudentDashboard = () => {
         })}
       </div>
 
-      {/* Schedule & Grades */}
+      {/* Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Today's Classes</h3>
-          <div className="space-y-3">
-            {todaySchedule.length > 0 ? (
-              todaySchedule.map((schedule) => (
-                <div key={schedule.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="text-sm font-medium text-blue-600">
-                    {schedule.start_time} - {schedule.end_time}
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">{schedule.course_name}</p>
-                    <p className="text-xs text-gray-500">Room {schedule.room_id}</p>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-gray-500 text-center py-4">No classes scheduled for today</p>
-            )}
-          </div>
-        </div>
+        {renderTeachersList()}
+        {renderSchedule()}
+      </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Grades</h3>
-          <div className="space-y-3">
-            {grades.length > 0 ? (
-              grades.map((grade) => (
-                <div key={grade.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                  <div className={`w-3 h-3 rounded-full ${
-                    grade.note >= 16 ? 'bg-green-500' : 
-                    grade.note >= 12 ? 'bg-yellow-500' : 
-                    grade.note ? 'bg-red-500' : 'bg-gray-400'
-                  }`}></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">
-                      {grade.course_name || `Course ${grade.course_id}`}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      Grade: {grade.note || 'Pending'} / 20
-                    </p>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-gray-500 text-center py-4">No grades available</p>
-            )}
-          </div>
-        </div>
+      {/* Grades Section */}
+      <div className="mt-6">
+        {renderGrades()}
       </div>
     </div>
   );

@@ -40,27 +40,30 @@ api.interceptors.request.use(
     }
 );
 
-// Improve error interceptor
+// Update the response interceptor
 api.interceptors.response.use(
     (response) => {
-        if (response.config.url?.includes('/sendEmail')) {
-            console.log('Email sent successfully:', response.data);
+        if (response.config.url?.includes('/communication/email')) {
+            // Check if the response indicates success
+            if (response.data?.success) {
+                console.log('Email sent successfully:', response.data);
+                return response;
+            } else {
+                // If the backend indicates failure despite 200 status
+                throw new Error(response.data?.error || 'Failed to send email');
+            }
         }
         return response;
     },
     (error) => {
-        // Detailed error logging for email failures
-        if (error.config?.url?.includes('/sendEmail')) {
+        if (error.config?.url?.includes('/communication/email')) {
             console.error('Email Send Error:', {
                 status: error.response?.status,
                 message: error.response?.data?.error || error.message,
-                details: error.response?.data?.details,
-                rawError: error.response?.data
+                details: error.response?.data
             });
-            throw new Error(`Email sending failed: ${error.response?.data?.error || error.message}`);
         }
-        
-        throw error;
+        return Promise.reject(error);
     }
 );
 
