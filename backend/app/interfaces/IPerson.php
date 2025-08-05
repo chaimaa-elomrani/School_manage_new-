@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Interfaces;
+use PDO; 
 
 interface IPerson {
  
@@ -18,6 +19,7 @@ interface IPerson {
     public function getRole(); 
     
     public function toArray();
+    public function save(PDO $pdo);
 
 
 }

@@ -47,12 +47,12 @@ class ParentService
     public function getChildSchedule($childId)
     {
         $sql = "SELECT sc.*, c.name as course_name, r.number as room_number,
-                       CONCAT(tp.first_name, ' ', tp.last_name) as teacher_name
+                       CONCAT(p.first_name, ' ', p.last_name) as teacher_name
                 FROM schedules sc
                 JOIN courses c ON sc.course_id = c.id
                 JOIN rooms r ON sc.room_id = r.id
                 JOIN teachers t ON c.teacher_id = t.id
-                JOIN person tp ON t.person_id = tp.id
+                JOIN person p ON t.person_id = tp.id
                 WHERE sc.course_id IN (
                     SELECT course_id FROM enrollments WHERE student_id = ?
                 )
@@ -158,4 +158,12 @@ class ParentService
         $stmt->execute([$parentId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+
+    // public function getChildTeacher($childId){
+
+    //     try {
+    //         $sql = "SELECT "
+    //     }
+    // }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use \App\Factories\PersonFactory;
 use App\Models\User;
 use PDO;
 
@@ -35,9 +36,17 @@ class AuthService
             $data['role'] ?? 'admin',
             $hashedPassword
         ]);
-        
+
         $userId = $this->pdo->lastInsertId();
+
+        // Create role-specific person (student or teacher) using factory
+        $role = $data['role'] ?? 'admin';
+        $person = PersonFactory::createPerson($role, array_merge($data, ['person_id' => $userId]));
         
+       if ($person) {
+            $person->save($this->pdo); // Assuming Student or Teacher has a save() method
+        }
+
         $user = new User([
             'id' => $userId,
             'email' => $data['email'],
@@ -45,7 +54,7 @@ class AuthService
             'first_name' => $data['first_name'] ?? '',
             'last_name' => $data['last_name'] ?? ''
         ]);
-        
+
         return [
             'user' => $user->toArray(),
             'token' => $this->generateToken($user)
@@ -55,23 +64,23 @@ class AuthService
     public function login(string $email, string $password): array
     {
         error_log("AuthService login called for: " . $email);
-        
+
         $user = $this->getUserByEmail($email);
-        
+
         if (!$user) {
             error_log("User not found: " . $email);
             throw new \Exception('Invalid credentials');
         }
-        
+
         error_log("User found, verifying password");
-        
+
         if (!$user->verifyPassword($password)) {
             error_log("Password verification failed for: " . $email);
             throw new \Exception('Invalid credentials');
         }
 
         error_log("Login successful for: " . $email);
-        
+
         return [
             'user' => $user->toArray(),
             'token' => $this->generateToken($user)
@@ -83,8 +92,8 @@ class AuthService
         $stmt = $this->pdo->prepare('SELECT * FROM person WHERE email = ?');
         $stmt->execute([$email]);
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        return $data ? new User($data) : null;
+
+        return $data ? new User(data: $data) : null;
     }
 
     public function generateToken(User $user): string
@@ -125,7 +134,7 @@ class AuthService
             }
 
             $decodedPayload = json_decode(base64_decode(str_replace(['-', '_'], ['+', '/'], $payload)), true);
-            
+
             if ($decodedPayload['exp'] < time()) {
                 return null; // Token expired
             }

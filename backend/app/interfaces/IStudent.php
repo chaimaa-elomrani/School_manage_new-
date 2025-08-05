@@ -3,9 +3,9 @@ namespace App\Interfaces;
 
 interface IStudent extends IPerson{
 
-    public function getClass();
+    public function getRoom();
 
-    public function setClass($class);
+    public function setRoom($class);
 
     public function getStudentNumber();
 

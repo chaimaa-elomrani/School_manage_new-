@@ -4,19 +4,24 @@ namespace App\Factories;
 
 use App\Models\Student;
 use App\Models\Teacher;
+use App\Models\Parents; // Make sure to import the Parent model
 use App\Interfaces\IPerson;
 
-class PersonFactory{
+class PersonFactory
+{
     public static function createPerson(string $role, array $data): ?IPerson
     {
         if ($role === 'student') {
             $newStudent = new Student($data);
             return $newStudent;
-        }else if ($role === 'teacher'){
+        } else if ($role === 'teacher') {
             $newTeacher = new Teacher($data);
             return $newTeacher;
-        }else {
-            return null ; 
+        } else if ($role === 'parent') { // Add this case for parents
+            $newParent = new Parents($data);
+            return $newParent;
+        } else {
+            return null;
         }
     }
 }
