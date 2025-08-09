@@ -20,7 +20,7 @@ class ParentService
         return $parents;
     }
 
-    public function getParentById($id){
+    public function getParentById($id):array{
         $stmt = $this->pdo->prepare('SELECT * FROM parents WHERE id = :id'); 
         $stmt->execute(['id' => $id]); 
         $parent = $stmt->fetch(PDO::FETCH_ASSOC); 

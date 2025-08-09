@@ -14,91 +14,65 @@ class CourseService
         $this->pdo = $pdo;
     }
 
-    public function save(Course $course): array
-    {
-        $stmt = $this->pdo->prepare("
-            INSERT INTO courses (subject_id, teacher_id, room_id, duration, level, start_date, end_date, title) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ");
+
+    public function createCourse(array $data){
+       $this->pdo->beginTransaction();
+       try{
+        $sql = "INSERT INTO courses (title, description, subject_id, teacher_id, class_id, duration, start_date, end_date ) 
+        VALUES (:title, :description, :subject_id, :teacher_id, :class_id, :duration, :start_date, :end_date)";
+
+        $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
-            $course->getSubjectId(),
-            $course->getTeacherId(), 
-            $course->getRoomId(),
-            $course->getDuration(),
-            $course->getLevel(),
-            $course->getCourseStartDate(),
-            $course->getCourseEndDate(),
-            $course->getName() // This will be stored as title
+            'title' => $data['title'],
+            'description' => $data['description'],
+            'subject_id' => $data['subject_id'],
+            'teacher_id' => $data['teacher_id'],
+            'class_id' => $data['class_id'],
+            'duration' => $data['duration'],
+            'start_date' => $data['start_date'],
+            'end_date' => $data['end_date']
         ]);
-        
-        return ['id' => $this->pdo->lastInsertId(), 'message' => 'Course saved successfully'];
+          $courseId = $this->pdo->lastInsertId();
+          $course = $this->getCourseById($courseId);
+        $this->pdo->commit();
+        return $course; 
+       }catch(\Exception $e){
+        $this->pdo->rollback();
+        throw $e;
+       }
     }
 
-    public function getById(int $id): ?Course
-    {
-        $stmt = $this->pdo->prepare("SELECT * FROM courses WHERE id = ?");
-        $stmt->execute([$id]);
-        $data = $stmt->fetch();
-        
-        return $data ? new Course($data) : null;
-    }
 
-    public function getAll(): array
-    {
-        try {
-            $sql = "SELECT 
-                c.*,
-                s.name as subject_name,
-                CONCAT(p.first_name, ' ', p.last_name) as teacher_name,
-                r.number as room_number
-                FROM courses c
-                LEFT JOIN subjects s ON c.subject_id = s.id
-                LEFT JOIN teachers t ON c.teacher_id = t.id
-                LEFT JOIN rooms r ON c.room_id = r.id
-                LEFT JOIN person p ON t.person_id = p.id
-                ORDER BY c.id DESC";
-                
-            $stmt = $this->pdo->prepare($sql);
-            $stmt->execute();
-            
-            $courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            
-            // Debug log
-            error_log("Fetched courses: " . json_encode($courses));
-            
-            return $courses;
-        } catch (\PDOException $e) {
-            error_log("Error fetching courses: " . $e->getMessage());
-            throw new \Exception("Error fetching courses: " . $e->getMessage());
+    public function listCourses(){
+        $stmt = $this->pdo->prepare(
+            "SELECT c.title , c.description, c.subject_id, c.teacher_id, c.class_id, c.duration, c.start_date, c.end_date , t.person_id, p.first_name, p.last_name, s.name, cl.number 
+            FROM courses JOIN subjects s ON c.subject_id = s.id
+            JOIN teachers t ON c.teacher_id = t.id
+            JOIN classes cl ON c.class_id = cl.id
+            JOIN person p ON t.person_id = p.id");
+        $stmt->execute();
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $courses = [];
+        foreach ($rows as $row) {
+            $courses[] = new Course($row);
         }
+        return $courses;
     }
 
-    public function update(Course $course): Course
-    {
-        $stmt = $this->pdo->prepare("
-            UPDATE courses 
-            SET subject_id = ?, teacher_id = ?, room_id = ?, duration = ?, 
-                level = ?, start_date = ?, end_date = ?, title = ? 
-            WHERE id = ?
-        ");
-        $stmt->execute([
-            $course->getSubjectId(),
-            $course->getTeacherId(),
-            $course->getRoomId(),
-            $course->getDuration(),
-            $course->getLevel(),
-            $course->getCourseStartDate(),
-            $course->getCourseEndDate(),
-            $course->getName(),
-            $course->getId()
-        ]);
-        
-        return $course;
+
+    public function getCourseById($id){
+        $stmt = $this->pdo->prepare("SELECT * FROM courses WHERE id = :id");
+        $stmt->execute(['id' => $id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($row) {
+            return new Course($row);
+        }
+        return null;
     }
 
-    public function delete(int $id): bool
-    {
-        $stmt = $this->pdo->prepare("DELETE FROM courses WHERE id = ?");
-        return $stmt->execute([$id]);
+    public function delete($id){
+        $stmt = $this->pdo->prepare('DELETE FROM courses WHERE id = :id'); 
+        $stmt->execute(['id' => $id]);
+        return true;
     }
 }
