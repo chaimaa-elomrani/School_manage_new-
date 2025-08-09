@@ -2,46 +2,95 @@
 
 namespace App\Controllers;
 
-use App\Services\BulletinService;
-use App\Services\GradeService;
-use App\Services\NotificationService;
-use App\Observers\GradeNotificationObserver;
-use Core\Db;
+use App\Services\BulletinGeneratorService;
+use App\Services\NoteService;
+use App\Services\StudentService; 
+use App\Services\CourseService; 
+use App\Models\Student;
+use App\Models\Course;
 use PDO;
+use Core\Db; // Assuming Core\Db for connection
 
 class BulletinController
 {
-    private $bulletinService;
+    private BulletinGeneratorService $bulletinGenerator;
+    private StudentService $studentService;
+    private CourseService $courseService;
+    private PDO $pdo; // For direct DB access if needed, or pass to services
 
-    public function __construct(PDO $pdo)
+    public function __construct(PDO $pdo )
     {
-        $pdo = Db::connection();
-        $gradeService = new GradeService($pdo);
-        $this->bulletinService = new BulletinService( $pdo , $gradeService);
-        
-        // Attach observer to bulletin generator
-        $notificationService = new NotificationService($pdo);
-        $observer = new GradeNotificationObserver(notificationService: $notificationService);
-        $this->bulletinService->attach($observer);
+        $this->pdo = Db::connection(); 
+        $noteService = new NoteService($pdo); 
+        $this->bulletinGenerator = new BulletinGeneratorService($noteService);
+        $this->studentService = new StudentService($pdo); 
+        $this->courseService = new CourseService($pdo); 
     }
 
-    public function generate()
+    /**
+     * Handles the request to generate a bulletin for a specific student and course.
+     * Example URL: /bulletin/generate?student_id=1&course_id=101
+     */
+    public function generateBulletin(): void
     {
-        $input = json_decode(file_get_contents('php://input'), true);
-        
-        try {
-            $bulletin = $this->bulletinService->generateBulletin(
-                $input['student_id'],
-                $input['course_id'],
-                $input['evaluation_id']
-            );
-            
-            echo json_encode([
-                'message' => 'Bulletin generated successfully',
-                'data' => $bulletin->toArray()
-            ]);
-        } catch (\Exception $e) {
-            echo json_encode(['error' => $e->getMessage()]);
+        $studentId = $_GET['student_id'] ?? null;
+        $courseId = $_GET['course_id'] ?? null;
+
+        if (!$studentId || !$courseId) {
+            $this->sendJsonResponse(['error' => 'Student ID and Course ID are required.'], 400);
+            return;
         }
+
+        try {
+            // Fetch Student and Course models
+            $student = $this->studentService->getStudentById((int)$studentId);
+            $course = $this->courseService->getCourseById((int)$courseId);
+
+            if (!$student) {
+                $this->sendJsonResponse(['error' => 'Student not found.'], 404);
+                return;
+            }
+            if (!$course) {
+                $this->sendJsonResponse(['error' => 'Course not found.'], 404);
+                return;
+            }
+
+            // Use the StandardBulletinGenerator service to generate the bulletin
+            $bulletin = $this->bulletinGenerator->generateAndSaveBulletin($student, $course);
+
+            $this->sendJsonResponse([
+                'message' => 'Bulletin generated successfully.',
+                'bulletin' => $bulletin->toArray()
+            ], 201);
+
+        } catch (\Exception $e) {
+            $this->sendJsonResponse(['error' => 'Failed to generate bulletin: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Helper to send JSON responses.
+     */
+    private function sendJsonResponse(array $data, int $statusCode = 200): void
+    {
+        header('Content-Type: application/json');
+        http_response_code($statusCode);
+        echo json_encode($data);
+    }
+
+    
+   public function getBulletinByStudent($studentId, $courseId): void {
+        $bulletin = $this->bulletinGenerator->getBulletinByStudent($studentId, $courseId);
+        if ($bulletin) {
+            $this->sendJsonResponse(['bulletin' => $bulletin->toArray()], 200);
+        } else {
+            $this->sendJsonResponse(['error' => 'Bulletin not found.'], 404);
+        }
+    }
+
+
+    public function listAll(): void {
+        $bulletins = $this->bulletinGenerator->listAll();
+        $this->sendJsonResponse(['bulletins' => $bulletins], 200);
     }
 }

@@ -1,60 +1,60 @@
 <?php
+
 namespace App\Models;
 
-class Bulletin{
+class Bulletin
+{
+    private ?int $id;
+    private int $studentId;
+    private int $courseId; // Or subjectId, depending on how you group grades for a bulletin
+    private float $generalAverage;
+    private string $gradeLetter; // A, B, C, etc.
+    private string $generationDate;
 
-    private $id ; 
-    private $student_id;
-    private $course_id;
-    private $evaluation_id;
-    private $grade;
-    private $general_average ; 
-
-
-
-    public function __construct(array $data){
+    public function __construct(array $data)
+    {
         $this->id = $data['id'] ?? null;
-        $this->student_id = $data['student_id'];
-        $this->course_id = $data['course_id'];
-        $this->evaluation_id = $data['evaluation_id'];
-        $this->grade = $data['grade'];
-        $this->general_average = $data['general_average'] ?? null;
+        $this->studentId = $data['student_id'];
+        $this->courseId = $data['course_id'];
+        $this->generalAverage = (float) $data['general_average'];
+        $this->gradeLetter = $data['grade_letter'];
+        $this->generationDate = $data['generation_date'] ?? date('Y-m-d H:i:s');
     }
 
-
-    public function getId(){
+    public function getId(): ?int
+    {
         return $this->id;
     }
-
-    public function getStudentId(){
-        return $this->student_id;
+    public function getStudentId(): int
+    {
+        return $this->studentId;
+    }
+    public function getCourseId(): int
+    {
+        return $this->courseId;
+    }
+    public function getGeneralAverage(): float
+    {
+        return $this->generalAverage;
+    }
+    public function getGradeLetter(): string
+    {
+        return $this->gradeLetter;
+    }
+    public function getGenerationDate(): string
+    {
+        return $this->generationDate;
     }
 
-    public function getCourseId(){
-        return $this->course_id;
-    }
-
-    public function getEvaluationId(){
-        return $this->evaluation_id;
-    }
-
-    public function getGrade(){
-        return $this->grade;
-    }
-
-    public function getGeneralAverage(){
-        return $this->general_average;
-    }
-
-    public function toArray() {
+    public function toArray(): array
+    {
         return [
             'id' => $this->id,
-            'student_id' => $this->student_id,
-            'course_id' => $this->course_id,
-            'evaluation_id' => $this->evaluation_id,
-            'grade' => $this->grade,
-            'general_average' => $this->general_average
+            'student_id' => $this->studentId,
+            'course_id' => $this->courseId,
+            'general_average' => $this->generalAverage,
+            'grade_letter' => $this->gradeLetter,
+            'generation_date' => $this->generationDate,
         ];
     }
-
 }

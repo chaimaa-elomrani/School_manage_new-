@@ -2,103 +2,75 @@
 
 namespace App\Models;
 
-class SalaireEnseignant 
+use App\Interfaces\IPayable;
+
+class SalaireEnseignant implements IPayable
 {
-    private $id;
-    private $teacher_id;
-    private $month;
-    private $year;
-    private $amount;
-    private $payment_date;
-    private $status;
-    private $bonus = 0;
-    private $deduction = 0;
+    private ?int $id;
+    private int $teacherId;
+    private float $amount; // The original amount before decorators
+    private int $month;
+    private int $year;
+    private string $paymentDate; // YYYY-MM-DD
+    private string $status; // e.g., 'pending', 'paid'
 
     public function __construct(array $data)
     {
         $this->id = $data['id'] ?? null;
-        $this->teacher_id = $data['teacher_id'] ?? null;
-        $this->month = $data['month'] ?? null;
-        $this->year = $data['year'] ?? null;
-        $this->amount = $data['amount'] ?? 0;
-        $this->payment_date = $data['payment_date'] ?? null;
-        $this->status = $data['status'] ?? 'pending';
-        $this->bonus = $data['bonus'] ?? 0;
-        $this->deduction = $data['deduction'] ?? 0;
+        $this->teacherId = $data['teacher_id'];
+        $this->amount = (float) $data['amount'];
+        $this->month = $data['month'];
+        $this->year = $data['year'];
+        $this->paymentDate = $data['payment_date'];
+        $this->status = $data['status'];
     }
 
-    // IPaymentCalculator
-    public function getBaseAmount(): float
+    public function getId(): ?int
     {
-        return (float) $this->amount;
+        return $this->id;
     }
-
-    public function getTotalAmount(): float
+    public function getTeacherId(): int
     {
-        return $this->getBaseAmount() + $this->bonus - $this->deduction;
+        return $this->teacherId;
     }
-
-    // IExtraFeeable (bonus)
-    public function applyExtraFee(float $extraFee): void
+    public function getMonth(): int
     {
-        $this->bonus = $extraFee;
+        return $this->month;
     }
-
-    public function getExtraFee(): float
+    public function getYear(): int
     {
-        return $this->bonus;
+        return $this->year;
     }
-
-    // Custom deduction method (not discount)
-    public function applyDeduction(float $deduction): void
+    public function getPaymentDate(): string
     {
-        $this->deduction = $deduction;
+        return $this->paymentDate;
     }
-
-    public function getDeduction(): float
-    {
-        return $this->deduction;
-    }
-
-    // IPaymentStatus
-    public function markAsPaid(): void
-    {
-        $this->status = 'paid';
-        $this->payment_date = date('Y-m-d');
-    }
-
     public function getStatus(): string
     {
         return $this->status;
     }
 
-    // Getters
-    public function getId() { return $this->id; }
-    public function getTeacherId() { return $this->teacher_id; }
-    public function getMonth() { return $this->month; }
-    public function getYear() { return $this->year; }
-    public function getPaymentDate() { return $this->payment_date; }
+    // IPayable method
+    public function getAmount(): float
+    {
+        return $this->amount;
+    }
+
+    public function getDescription(): string
+    {
+        return "Salaire de l'enseignant ID {$this->teacherId} pour {$this->month}/{$this->year}";
+    }
 
     public function toArray(): array
     {
         return [
             'id' => $this->id,
-            'teacher_id' => $this->teacher_id,
+            'teacher_id' => $this->teacherId,
+            'amount' => $this->amount,
             'month' => $this->month,
             'year' => $this->year,
-            'amount' => $this->amount,
-            'bonus' => $this->bonus,
-            'deduction' => $this->deduction,
-            'total_amount' => $this->getTotalAmount(),
-            'payment_date' => $this->payment_date,
-            'status' => $this->status
+            'payment_date' => $this->paymentDate,
+            'status' => $this->status,
         ];
     }
-
-    public function getDescription(): string
-    {
-        return "Teacher salary for {$this->month}/{$this->year}";
-    }
 }
-
-

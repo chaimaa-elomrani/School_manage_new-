@@ -2,85 +2,36 @@
 
 namespace App\Models;
 
-
-class FraisScolaire 
+class FraisScolaire
 {
-    private $id;
-    private $name;
-    private $amount;
-    private $type;
-    private $discount = 0;
-    private $extra_fee = 0;
-    private $status = 'active';
+    private ?int $id;
+    private string $name;
+    private float $amount;
+    private string $type; // e.g., 'inscription', 'mensuel', 'activite'
 
     public function __construct(array $data)
     {
         $this->id = $data['id'] ?? null;
-        $this->name = $data['name'] ?? '';
-        $this->amount = $data['amount'] ?? 0;
-        $this->type = $data['type'] ?? 'other';
-        $this->discount = $data['discount'] ?? 0;
-        $this->extra_fee = $data['extra_fee'] ?? 0;
-        $this->status = $data['status'] ?? 'active';
+        $this->name = $data['name'];
+        $this->amount = (float) $data['amount'];
+        $this->type = $data['type'];
     }
 
-    // IPaymentCalculator
-    public function getBaseAmount(): float
+    public function getId(): ?int
     {
-        return (float) $this->amount;
+        return $this->id;
     }
-
-    public function getTotalAmount(): float
+    public function getName(): string
     {
-        return $this->getBaseAmount() - $this->discount + $this->extra_fee;
+        return $this->name;
     }
-
-    // IDiscountable
-    public function applyDiscount(float $discount): void
+    public function getAmount(): float
     {
-        $this->discount = $discount;
+        return $this->amount;
     }
-
-    public function getDiscount(): float
+    public function getType(): string
     {
-        return $this->discount;
-    }
-
-    // IExtraFeeable
-    public function applyExtraFee(float $extraFee): void
-    {
-        $this->extra_fee = $extraFee;
-    }
-
-    public function getExtraFee(): float
-    {
-        return $this->extra_fee;
-    }
-
-    // Custom status methods
-    public function activate(): void
-    {
-        $this->status = 'active';
-    }
-
-    public function deactivate(): void
-    {
-        $this->status = 'inactive';
-    }
-
-    public function getStatus(): string
-    {
-        return $this->status;
-    }
-
-    // Getters
-    public function getId() { return $this->id; }
-    public function getName() { return $this->name; }
-    public function getType() { return $this->type; }
-
-    public function getDescription(): string
-    {
-        return "School fee: {$this->name}";
+        return $this->type;
     }
 
     public function toArray(): array
@@ -90,10 +41,6 @@ class FraisScolaire
             'name' => $this->name,
             'amount' => $this->amount,
             'type' => $this->type,
-            'discount' => $this->discount,
-            'extra_fee' => $this->extra_fee,
-            'total_amount' => $this->getTotalAmount(),
-            'status' => $this->status
         ];
     }
 }

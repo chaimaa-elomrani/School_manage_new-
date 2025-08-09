@@ -35,7 +35,8 @@ class ClasseService
     {
         $stmt = $this->pdo->prepare('SELECT * FROM classes WHERE id = :id');
         $stmt->execute(['id' => $id]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        $classe = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $classe;
     }
 
     public function delete($id)

@@ -38,4 +38,11 @@ class ClasseController
         $classe = $this->ClasseService->delete($id);
         return $classe;
     }
+
+
+
+    public function getAvailableClasses($date, $startTime, $endTime){
+        $classes = $this->ClasseService->getAvailableClasses($date, $startTime, $endTime);
+        return $classes;
+    }
 }

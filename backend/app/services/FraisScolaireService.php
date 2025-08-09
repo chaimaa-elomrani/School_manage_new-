@@ -4,14 +4,15 @@ namespace App\Services;
 
 use App\Models\FraisScolaire;
 use PDO;
+use Core\Db; // Assuming Core\Db for connection
 
 class FraisScolaireService
 {
-    private $pdo;
+    private PDO $pdo;
 
-    public function __construct(PDO $pdo)
+    public function __construct()
     {
-        $this->pdo = $pdo;
+        $this->pdo = Db::connection();
     }
 
     public function save(FraisScolaire $fee): FraisScolaire
@@ -24,19 +25,15 @@ class FraisScolaireService
             ');
             $stmt->execute([
                 'name' => $fee->getName(),
-                'amount' => $fee->getTotalAmount(),
+                'amount' => $fee->getAmount(),
                 'type' => $fee->getType()
             ]);
-
             $feeId = $this->pdo->lastInsertId();
             $this->pdo->commit();
 
-            return new FraisScolaire([
-                'id' => $feeId,
-                'name' => $fee->getName(),
-                'amount' => $fee->getTotalAmount(),
-                'type' => $fee->getType()
-            ]);
+            $data = $fee->toArray();
+            $data['id'] = (int) $feeId;
+            return new FraisScolaire($data);
         } catch (\Exception $e) {
             $this->pdo->rollback();
             throw $e;
@@ -48,7 +45,6 @@ class FraisScolaireService
         $stmt = $this->pdo->prepare('SELECT * FROM school_fees ORDER BY name');
         $stmt->execute();
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
         $fees = [];
         foreach ($rows as $row) {
             $fees[] = new FraisScolaire($row);
@@ -56,12 +52,11 @@ class FraisScolaireService
         return $fees;
     }
 
-    public function getById($id): ?FraisScolaire
+    public function getById(int $id): ?FraisScolaire
     {
         $stmt = $this->pdo->prepare('SELECT * FROM school_fees WHERE id = :id');
         $stmt->execute(['id' => $id]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
         return $row ? new FraisScolaire($row) : null;
     }
 }
