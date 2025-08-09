@@ -4,7 +4,7 @@ namespace App\Models;
 class Schedule {
     private $id;
     private $course_id;
-    private $room_id;
+    private $Classe_id;
     private $date;
     private $start_time;
     private $end_time;
@@ -12,7 +12,7 @@ class Schedule {
     public function __construct(array $data){
         $this->id = $data['id'] ?? null;
         $this->course_id = $data['course_id'] ?? null;
-        $this->room_id = $data['room_id'] ?? null;
+        $this->Classe_id = $data['Classe_id'] ?? null;
         $this->date = $data['date'] ?? null;
         $this->start_time = $data['start_time'] ?? null;
         $this->end_time = $data['end_time'] ?? null;
@@ -24,8 +24,8 @@ class Schedule {
     public function getCourseId() { 
         return $this->course_id; 
     }
-    public function getRoomId() { 
-        return $this->room_id; 
+    public function getClasseId() { 
+        return $this->Classe_id; 
     }
     public function getTeacherId() { 
         return null; // Will get from course join
@@ -44,7 +44,7 @@ class Schedule {
         return [
             'id' => $this->id,
             'course_id' => $this->course_id,
-            'room_id' => $this->room_id,
+            'Classe_id' => $this->Classe_id,
             'date' => $this->date,
             'start_time' => $this->start_time,
             'end_time' => $this->end_time

@@ -44,4 +44,22 @@ class ClasseService
         $stmt->execute(['id' => $id]);
         return true;
     }
+
+ public function getAvailableClasses($date, $startTime, $endTime){
+    $sql = "SELECT * FROM classes 
+            WHERE id NOT IN (SELECT class_id FROM courses) 
+            AND id NOT IN (SELECT Classe_id FROM schedules 
+                            WHERE date = :date 
+                            AND (start_time BETWEEN :startTime AND :endTime 
+                                 OR end_time BETWEEN :startTime AND :endTime 
+                                 OR (:startTime BETWEEN start_time AND end_time 
+                                      AND :endTime BETWEEN start_time AND end_time)))";
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->execute([
+        'date' => $date,
+        'startTime' => $startTime,
+        'endTime' => $endTime
+    ]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
 }

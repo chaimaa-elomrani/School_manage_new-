@@ -19,10 +19,10 @@ class ScheduleService
     {
         $this->pdo->beginTransaction();
         try {
-            $stmt = $this->pdo->prepare('INSERT INTO schedules (course_id, room_id, date, start_time, end_time) VALUES (:course_id, :room_id, :date, :start_time, :end_time)');
+            $stmt = $this->pdo->prepare('INSERT INTO schedules (course_id, Classe_id, date, start_time, end_time) VALUES (:course_id, :Classe_id, :date, :start_time, :end_time)');
             $stmt->execute([
                 'course_id' => $schedule->getCourseId(),
-                'room_id' => $schedule->getRoomId(),
+                'Classe_id' => $schedule->getClasseId(),
                 'date' => $schedule->getDate(),
                 'start_time' => $schedule->getStartTime(),
                 'end_time' => $schedule->getEndTime()
@@ -34,7 +34,7 @@ class ScheduleService
             $scheduleData = [
                 'id' => $scheduleId,
                 'course_id' => $schedule->getCourseId(),
-                'room_id' => $schedule->getRoomId(),
+                'Classe_id' => $schedule->getClasseId(),
                 'date' => $schedule->getDate(),
                 'start_time' => $schedule->getStartTime(),
                 'end_time' => $schedule->getEndTime()
@@ -55,11 +55,11 @@ class ScheduleService
                 c.title as course_name,
                 CONCAT(p.first_name, ' ', p.last_name) as teacher_name,
                 t.id as teacher_id,
-                r.number as room_number
+                r.number as Classe_number
                 FROM schedules s
                 LEFT JOIN courses c ON s.course_id = c.id
                 LEFT JOIN teachers t ON c.teacher_id = t.id
-                LEFT JOIN rooms r ON s.room_id = r.id
+                LEFT JOIN Classes r ON s.Classe_id = r.id
                 LEFT JOIN person p ON t.person_id = p.id
                 ORDER BY s.date, s.start_time";
                 
@@ -85,10 +85,10 @@ class ScheduleService
     }
 
     // New methods for strategy pattern support
-    public function getByRoomAndDate($roomId, $date)
+    public function getByClasseAndDate($ClasseId, $date)
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM schedules WHERE room_id = :room_id AND date = :date');
-        $stmt->execute(['room_id' => $roomId, 'date' => $date]);
+        $stmt = $this->pdo->prepare('SELECT * FROM schedules WHERE Classe_id = :Classe_id AND date = :date');
+        $stmt->execute(['Classe_id' => $ClasseId, 'date' => $date]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         $schedules = [];
@@ -145,11 +145,11 @@ class ScheduleService
     {
         $this->pdo->beginTransaction();
         try {
-            $stmt = $this->pdo->prepare('UPDATE schedules SET course_id = :course_id, room_id = :room_id, date = :date, start_time = :start_time, end_time = :end_time WHERE id = :id');
+            $stmt = $this->pdo->prepare('UPDATE schedules SET course_id = :course_id, Classe_id = :Classe_id, date = :date, start_time = :start_time, end_time = :end_time WHERE id = :id');
             $stmt->execute([
                 'id' => $schedule->getId(),
                 'course_id' => $schedule->getCourseId(),
-                'room_id' => $schedule->getRoomId(),
+                'Classe_id' => $schedule->getClasseId(),
                 'date' => $schedule->getDate(),
                 'start_time' => $schedule->getStartTime(),
                 'end_time' => $schedule->getEndTime()
@@ -169,45 +169,7 @@ class ScheduleService
         return $result;
     }
 
-    public function testConnection()
-    {
-        try {
-            // Check if schedules table has any data
-            $stmt = $this->pdo->prepare('SELECT COUNT(*) as count FROM schedules');
-            $stmt->execute();
-            $count = $stmt->fetch(PDO::FETCH_ASSOC);
-            error_log("Total schedules in database: " . $count['count']);
-            
-            // Check schedules table structure
-            $stmt = $this->pdo->prepare('DESCRIBE schedules');
-            $stmt->execute();
-            $structure = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            error_log("Schedules table structure: " . json_encode($structure));
-            
-            // Check sample schedule data
-            $stmt = $this->pdo->prepare('SELECT * FROM schedules LIMIT 3');
-            $stmt->execute();
-            $schedules = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            error_log("Sample schedules: " . json_encode($schedules));
-            
-            // Check if related tables exist
-            $tables = ['courses', 'subjects', 'rooms'];
-            foreach ($tables as $table) {
-                try {
-                    $stmt = $this->pdo->prepare("SELECT COUNT(*) as count FROM $table");
-                    $stmt->execute();
-                    $tableCount = $stmt->fetch(PDO::FETCH_ASSOC);
-                    error_log("Table $table has " . $tableCount['count'] . " records");
-                } catch (\Exception $e) {
-                    error_log("Table $table does not exist or error: " . $e->getMessage());
-                }
-            }
-            
-            return $count['count'];
-        } catch (\Exception $e) {
-            error_log("Database test error: " . $e->getMessage());
-            throw $e;
-        }
-    }
+ 
+
 }
 

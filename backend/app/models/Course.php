@@ -18,6 +18,7 @@ class Course
     private $teacher_name;
     private $subject_name;
     private $class_number;
+    private $requiredCapacity; 
 
     public function __construct(array $data = [])
     {
@@ -51,7 +52,7 @@ class Course
             'end_date' => $this->end_date,
             'teacher_name' => $this->teacher_name ?? null,
             'subject_name' => $this->subject_name ?? null,
-            'room_number' => $this->room_number ?? null
+            'classe_number' => $this->classe_number ?? null
         ];
     }
 
@@ -93,5 +94,10 @@ class Course
     public function getCourseEndDate()
     {
         return $this->end_date ?? null;
+    }
+
+    public function getRequiredCapacity()
+    {
+        return $this->requiredCapacity ?? null;
     }
 }

@@ -6,11 +6,13 @@ class Classe
 {
     private $id;
     private $number;
+    private $capacity;
 
     public function __construct(array $data = [])
     {
         $this->id = $data['id'] ?? null;
         $this->number = $data['number'] ?? '';
+        $this->capacity = $data['capacity'] ?? '';
 
     }
 
@@ -19,7 +21,7 @@ class Classe
         return [
             'id' => $this->id,
             'number' => $this->number,
-
+            'capacity' => $this->capacity
         ];
     }
 
@@ -31,6 +33,11 @@ class Classe
     public function getNumber()
     {
         return $this->number;
+    }
+
+    public function getCapacity()
+    {
+        return $this->capacity;
     }
 
 }

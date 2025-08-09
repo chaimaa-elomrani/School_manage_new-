@@ -22,7 +22,8 @@ class EvaluationService
             'teacher_id' => $evaluation->getTeacherId(),
             'date_evaluation' => $evaluation->getDate(),
         ]);
-        return $this->pdo->lastInsertId();
+        $evaluation = $this->pdo->lastInsertId();
+        return $evaluation;
     }
 
 
