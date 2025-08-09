@@ -13,20 +13,20 @@ use App\Controllers\GradesController;
 use App\Controllers\BulletinController;
 use App\Controllers\CourseScheduleController;
 use App\Controllers\NotificationController;
-use App\Controllers\PaiementEleveController; // Student Payments
-use App\Controllers\SalaireEnseignantController; // Teacher Salaries
-use App\Controllers\FraisScolaireController; // School Fees
+use App\Controllers\PaiementEleveController; 
+use App\Controllers\SalaireEnseignantController; 
+use App\Controllers\FraisScolaireController; 
 use App\Controllers\CommunicationController;
-use App\Controllers\UpdatedParentController; // The new parent controller
-use App\Services\EnhancedStudentService; // For enhanced student data
-use App\Services\EnhancedTeacherService; // For enhanced teacher data
-use Core\Db; // Assuming your DB connection is here
+use App\Controllers\ParentController; 
+use App\Services\EnhancedStudentService; 
+use App\Services\EnhancedTeacherService; 
+use Core\Db; 
 
-// --- Authentication Routes ---
+// --- Authentication Routes --- tested 
 $router->post('/auth/register', 'AuthController@register');
 $router->post('/auth/login', 'AuthController@login');
 $router->post('/auth/logout', 'AuthController@logout');
-$router->get('/auth/me', 'AuthController@me');
+
 
 // --- Student Management Routes (Basic CRUD) ---
 $router->post('/createStudent', 'StudentController@create');
@@ -147,23 +147,23 @@ $router->get('/teacher/grades/{id}', 'TeacherController@getEnhancedGrades');
 $router->get('/teacher/assignments/{id}', 'TeacherController@getEnhancedAssignments');
 
 // --- PARENT DASHBOARD ROUTES (using UpdatedParentController) ---
-$router->get('/parent/profile/{id}', 'UpdatedParentController@getProfile');
-$router->get('/parent/children/{id}', 'UpdatedParentController@getChildren');
-$router->get('/parent/child/grades/{id}', 'UpdatedParentController@getChildGrades');
-$router->get('/parent/child/schedule/{id}', 'UpdatedParentController@getChildSchedule');
-$router->get('/parent/child/stats/{id}', 'UpdatedParentController@getChildStats');
-$router->get('/parent/child/teachers/{id}', 'UpdatedParentController@getChildTeachers');
-$router->get('/parent/payments/{id}', 'UpdatedParentController@getPayments');
-$router->get('/parent/messages/{id}', 'UpdatedParentController@getMessages');
-$router->get('/parent/announcements/{id}', 'UpdatedParentController@getAnnouncements');
-$router->post('/parent/send-message', 'UpdatedParentController@sendMessage');
+$router->get('/parent/profile/{id}', 'ParentController@getProfile');
+$router->get('/parent/children/{id}', 'ParentController@getChildren');
+$router->get('/parent/child/grades/{id}', 'ParentController@getChildGrades');
+$router->get('/parent/child/schedule/{id}', 'ParentController@getChildSchedule');
+$router->get('/parent/child/stats/{id}', 'ParentController@getChildStats');
+$router->get('/parent/child/teachers/{id}', 'ParentController@getChildTeachers');
+$router->get('/parent/payments/{id}', 'ParentController@getPayments');
+$router->get('/parent/messages/{id}', 'ParentController@getMessages');
+$router->get('/parent/announcements/{id}', 'ParentController@getAnnouncements');
+$router->post('/parent/send-message', 'ParentController@sendMessage');
 
 // --- Other specific routes (review and remove if redundant) ---
-// $router->get('/studentData/{id}' , 'StudentController@getStudentData'); // Likely redundant with /student/profile/{id}
-// $router->get('/getStudentData/{id}', 'StudentController@getStudentData'); // Likely redundant
-// $router->get('/getClassTeachers/{classId}', 'StudentController@getClassTeachers'); // Keep if needed for other parts
-// $router->get('/getClassmates/{classId}', 'StudentController@getClassmates'); // Keep if needed for other parts
-// $router->get('/getStudentSchedule/{studentId}', 'ScheduleController@getStudentSchedule'); // Redundant with /student/schedule/{id}
-// $router->get('/getStudentEvaluations/{studentId}', 'EvaluationController@getStudentEvaluations'); // Redundant with /student/grades/{id}
-// $router->get('/getStudentGrades/{studentId}', 'GradesController@getStudentGrades'); // Redundant with /student/grades/{id}
+$router->get('/studentData/{id}' , 'StudentController@getStudentData'); // Likely redundant with /student/profile/{id}
+$router->get('/getStudentData/{id}', 'StudentController@getStudentData'); // Likely redundant
+$router->get('/getClassTeachers/{classId}', 'StudentController@getClassTeachers'); // Keep if needed for other parts
+$router->get('/getClassmates/{classId}', 'StudentController@getClassmates'); // Keep if needed for other parts
+$router->get('/getStudentSchedule/{studentId}', 'ScheduleController@getStudentSchedule'); // Redundant with /student/schedule/{id}
+$router->get('/getStudentEvaluations/{studentId}', 'EvaluationController@getStudentEvaluations'); // Redundant with /student/grades/{id}
+$router->get('/getStudentGrades/{studentId}', 'GradesController@getStudentGrades'); // Redundant with /student/grades/{id}
 // ... and so on for other duplicates.

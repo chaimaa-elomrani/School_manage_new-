@@ -2,7 +2,6 @@
 
 namespace App\Strategies;
 
-use App\Interfaces\IPlanningStrategy;
 use App\Models\Course;
 use App\Models\Room;
 use App\Models\Schedule;
@@ -10,7 +9,7 @@ use App\Services\ScheduleService;
 use DateTime;
 use PDO;
 
-class PlanningStrategy implements IPlanningStrategy
+class PlanningStrategy 
 {
     private $scheduleService;
 

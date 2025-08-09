@@ -2,14 +2,12 @@
 
 namespace App\Strategies;
 
-use App\Interfaces\ICourseScheduleStrategy;
 use App\Models\Course;
 use App\Models\Schedule;
 use App\Services\ScheduleService;
 use PDO;
 
-class CourseScheduleStrategy implements ICourseScheduleStrategy
-{
+class CourseScheduleStrategy {
     private $scheduleService;
 
     public function __construct(PDO $pdo)

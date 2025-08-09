@@ -2,10 +2,9 @@
 
 namespace App\Observers;
 
-use App\Interfaces\IObserver;
 use App\Services\NotificationService;
 
-class GradeNotificationObserver implements IObserver
+class GradeNotificationObserver
 {
     private $notificationService;
 

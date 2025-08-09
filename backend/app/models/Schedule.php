@@ -1,8 +1,7 @@
 <?php
 namespace App\Models;
-use App\Interfaces\ISchedule;
 
-class Schedule implements ISchedule{
+class Schedule {
     private $id;
     private $course_id;
     private $room_id;

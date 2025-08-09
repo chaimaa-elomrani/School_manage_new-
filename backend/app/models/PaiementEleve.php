@@ -2,12 +2,9 @@
 
 namespace App\Models;
 
-use App\Interfaces\IPaymentCalculator;
-use App\Interfaces\IDiscountable;
-use App\Interfaces\IExtraFeeable;
-use App\Interfaces\IPaymentStatus;
 
-class PaiementEleve implements IPaymentCalculator, IDiscountable, IExtraFeeable, IPaymentStatus
+
+class PaiementEleve
 {
     private $id;
     private $student_id;

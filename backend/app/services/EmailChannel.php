@@ -5,9 +5,8 @@ namespace App\Services;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
-use App\Interfaces\IEmailChannel;
 
-class EmailChannel implements IEmailChannel
+class EmailChannel 
 {
     private $config;
 

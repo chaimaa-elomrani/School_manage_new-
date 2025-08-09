@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use \App\Factories\PersonFactory;
-use App\Models\User;
+use App\Models\Person;
 use PDO;
 
 class AuthService
@@ -42,12 +42,13 @@ class AuthService
         // Create role-specific person (student or teacher) using factory
         $role = $data['role'] ?? 'admin';
         $person = PersonFactory::createPerson($role, array_merge($data, ['person_id' => $userId]));
-        
-       if ($person) {
+
+        if ($person) {
+            $person = PersonFactory::createPerson($role, array_merge($data, ['person_id' => $userId])); // this line means that if the role is not set we will set it to student
             $person->save($this->pdo); // Assuming Student or Teacher has a save() method
         }
 
-        $user = new User([
+        $user = new Person([
             'id' => $userId,
             'email' => $data['email'],
             'role' => $data['role'] ?? 'admin',
@@ -63,7 +64,6 @@ class AuthService
 
     public function login(string $email, string $password): array
     {
-        error_log("AuthService login called for: " . $email);
 
         $user = $this->getUserByEmail($email);
 
@@ -72,14 +72,10 @@ class AuthService
             throw new \Exception('Invalid credentials');
         }
 
-        error_log("User found, verifying password");
-
         if (!$user->verifyPassword($password)) {
             error_log("Password verification failed for: " . $email);
             throw new \Exception('Invalid credentials');
         }
-
-        error_log("Login successful for: " . $email);
 
         return [
             'user' => $user->toArray(),
@@ -87,22 +83,21 @@ class AuthService
         ];
     }
 
-    public function getUserByEmail(string $email): ?User
+    public function getUserByEmail(string $email): ?Person
     {
         $stmt = $this->pdo->prepare('SELECT * FROM person WHERE email = ?');
         $stmt->execute([$email]);
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        return $data ? new User(data: $data) : null;
+        return $data ? new Person(data: $data) : null;
     }
 
-    public function generateToken(User $user): string
+    public function generateToken(Person $user): string
     {
         $header = json_encode(['typ' => 'JWT', 'alg' => 'HS256']);
         $payload = json_encode([
             'user_id' => $user->getId(),
             'email' => $user->getEmail(),
-            'role' => $user->getRole(),
             'iat' => time(),
             'exp' => time() + (24 * 60 * 60) // 24 hours
         ]);

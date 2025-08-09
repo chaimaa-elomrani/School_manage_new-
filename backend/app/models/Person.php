@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
-class User
+use App\Interfaces\IPerson;
+use PDO; 
+class Person implements IPerson
 {
     private $id;
     private $first_name;
@@ -12,9 +14,7 @@ class User
     private $role;
     private $password;
     // Add properties for role-specific IDs if you want them explicitly
-    public $student_id;
-    public $teacher_id;
-    public $parent_id;
+
 
     public function __construct(array $data)
     {
@@ -47,11 +47,6 @@ class User
         return $this->email;
     }
 
-    public function getRole()
-    {
-        return $this->role;
-    }
-
     public function getFirstName()
     {
         return $this->first_name;
@@ -60,6 +55,10 @@ class User
     public function getLastName()
     {
         return $this->last_name;
+    }
+
+    public function getPhone(){
+        return $this->phone; 
     }
 
     public function toArray(): array
@@ -73,17 +72,18 @@ class User
             'role' => $this->role
         ];
 
-        // Include role-specific IDs if they are set
-        if ($this->student_id !== null) {
-            $array['student_id'] = $this->student_id;
-        }
-        if ($this->teacher_id !== null) {
-            $array['teacher_id'] = $this->teacher_id;
-        }
-        if ($this->parent_id !== null) {
-            $array['parent_id'] = $this->parent_id;
-        }
-
         return $array;
     }
+    
+    public function save(PDO $pdo){
+        $stmt = $pdo->prepare('INSERT INTO students (first_name, last_name , email, phone ; role) VALUES (?, ?, ?)');
+        $stmt->execute([
+            $this->first_name,
+            $this->last_name,
+            $this->email,
+            $this->phone,
+            $this->role,
+        ]);
+    }
+    
 }

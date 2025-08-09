@@ -39,79 +39,41 @@ class Teacher implements IPerson, ITeacher
     {
         return $this->id;
     }
-    public function getName()
-    {
-        return $this->first_name . ' ' . $this->last_name;
-    }
-    public function setName($name)
-    {
-        $parts = explode(' ', $name, 2);
-        $this->first_name = $parts[0];
-        $this->last_name = $parts[1] ?? '';
-    }
-    public function getEmail()
-    {
-        return $this->email;
-    }
-    public function setEmail($email)
-    {
-        $this->email = $email;
-    }
-    public function getRole()
-    {
-        return $this->role;
-    }
-
-    // ITeacher interface methods (legacy - not in database)
-    public function getSubject()
-    {
-        return $this->specialty;
-    }
-    public function setSubject($subject)
-    {
-        $this->specialty = $subject;
-    }
-    public function getSalary()
-    {
-        return 0;
-    } // Not in schema
-    public function setSalary($salary)
-    {
-    } // Not in schema
-    public function getAbsence()
-    {
-        return 0;
-    } // Not in schema
-    public function setAbsence($absence)
-    {
-    } // Not in schema
-
-    // Additional getters for database fields
     public function getFirstName()
     {
         return $this->first_name;
 
     }
-    public function getLastName()
+
+      public function getLastName()
     {
         return $this->last_name;
     }
+
+    public function getEmail()
+    {
+        return $this->email;
+    }
+
+
     public function getPhone()
     {
         return $this->phone;
     }
+
+    public function getSpeciality()
+    {
+        return $this->specialty;
+    }
+
+
+  
+  
     public function getEmployeeNumber()
     {
         return $this->employee_number;
     }
-    public function getSpecialty()
-    {
-        return $this->specialty;
-    }
-    public function getPersonId()
-    {
-        return $this->person_id;
-    }
+
 
     public function toArray()
     {
@@ -120,7 +82,6 @@ class Teacher implements IPerson, ITeacher
             'person_id' => $this->person_id,
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
-            'name' => $this->getName(),
             'email' => $this->email,
             'phone' => $this->phone,
             'role' => $this->role,

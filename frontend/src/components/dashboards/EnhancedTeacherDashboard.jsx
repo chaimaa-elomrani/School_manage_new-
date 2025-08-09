@@ -12,6 +12,18 @@ import {
   CalendarIcon,
 } from "@heroicons/react/24/outline"
 import { Doughnut } from "react-chartjs-2"
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js"
+
+ChartJS.register(CategoryScale, LinearScale, ArcElement, Title, Tooltip, Legend)
+
 
 const EnhancedTeacherDashboard = () => {
   const { user } = useAuth()
@@ -222,7 +234,7 @@ const EnhancedTeacherDashboard = () => {
                 className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
               >
                 <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span className="text-blue-600 font-medium text-sm">
+                  <span className="text-blue-600 font-medium">
                     {student.first_name?.charAt(0)}
                     {student.last_name?.charAt(0)}
                   </span>
@@ -338,4 +350,3 @@ const EnhancedTeacherDashboard = () => {
 }
 
 export default EnhancedTeacherDashboard
-    

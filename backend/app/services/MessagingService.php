@@ -2,12 +2,10 @@
 
 namespace App\Services;
 
-use App\Interfaces\IMessaging;
-use App\Interfaces\IMessage;
 use App\Models\Message;
 use PDO;
 
-class MessagingService implements IMessaging
+class MessagingService 
 {
     private $pdo;
 
@@ -16,7 +14,7 @@ class MessagingService implements IMessaging
         $this->pdo = $pdo;
     }
 
-    public function sendMessage(IMessage $message): bool
+    public function sendMessage( $message): bool
     {
         try {
             $stmt = $this->pdo->prepare('

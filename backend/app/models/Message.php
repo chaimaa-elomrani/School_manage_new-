@@ -2,9 +2,8 @@
 
 namespace App\Models;
 
-use App\Interfaces\IMessage;
 
-class Message implements IMessage
+class Message 
 {
     private $id;
     private $sender_id;

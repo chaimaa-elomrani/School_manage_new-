@@ -2,16 +2,13 @@
 
 namespace App\Facades;
 
-use App\Interfaces\ICommunicationFacade;
-use App\Interfaces\IEmailChannel;
-use App\Interfaces\ISMSChannel;
-use App\Interfaces\IMessaging;
+
 use App\Models\Notification;
 use App\Models\Message;
 use App\Services\NotificationService;
 use PDO;
 
-class CommunicationFacade implements ICommunicationFacade
+class CommunicationFacade
 {
     private $emailChannel;
     private $smsChannel;
@@ -20,15 +17,10 @@ class CommunicationFacade implements ICommunicationFacade
     private $pdo;
 
     public function __construct(
-        IEmailChannel $emailChannel,
-        ISMSChannel $smsChannel,
-        IMessaging $messagingService,
         NotificationService $notificationService,
         PDO $pdo
     ) {
-        $this->emailChannel = $emailChannel;
-        $this->smsChannel = $smsChannel;
-        $this->messagingService = $messagingService;
+   
         $this->notificationService = $notificationService;
         $this->pdo = $pdo;
     }

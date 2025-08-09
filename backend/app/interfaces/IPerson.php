@@ -7,18 +7,14 @@ interface IPerson {
  
     public function  getId();
 
-    public function getName(); 
+    public function getFirstName();
 
-    public function setName($name);
-
+    public function getLastName(); 
 
     public function getEmail(); 
-
-    public function setEmail($email); 
-
-    public function getRole(); 
     
-    public function toArray();
+    public function getPhone();
+    
     public function save(PDO $pdo);
 
 

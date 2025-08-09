@@ -3,33 +3,19 @@
 namespace App\Controllers;
 
 use App\Models\PaiementEleve;
-use App\Interfaces\IFinancialService;
-use App\Interfaces\IPaymentRepository;
-use App\Services\FinancialService;
-use App\Services\PaymentNotificationService;
-use App\Repositories\PaymentRepository;
+use App\Services\PaiementEleveService;
 use Core\Db;
-use App\Factories\PaymentDecoratorFactory;
 
 class PaiementEleveController
 {
-    private $financialService;
-    private $paymentRepository;
 
-    public function __construct(
-        IFinancialService $financialService = null,
-        IPaymentRepository $paymentRepository = null
-    ) {
-        if ($financialService && $paymentRepository) {
-            $this->financialService = $financialService;
-            $this->paymentRepository = $paymentRepository;
-        } else {
-            // Default dependency injection
-            $pdo = Db::connection();
-            $this->paymentRepository = new PaymentRepository($pdo, 'payments');
-            $notificationService = new PaymentNotificationService($pdo);
-            $this->financialService = new FinancialService($this->paymentRepository, $notificationService);
-        }
+    private $piementEleveService;
+    public function __construct(PaiementEleveService $piementEleveService)
+    {
+        $pdo = Db::connection();
+        $this->piementEleveService = new PaiementEleveService($pdo);
+
+
     }
 
     public function create()
@@ -42,11 +28,11 @@ class PaiementEleveController
 
         try {
             $payment = new PaiementEleve($input);
-            
+
             // Apply decorators if configuration is provided
             if (isset($input['payment_config'])) {
                 $decoratedPayment = PaymentDecoratorFactory::createDecoratedPayment($payment, $input['payment_config']);
-                
+
                 // Update original payment with decorated values
                 if (method_exists($decoratedPayment, 'getDiscountAmount')) {
                     $payment->applyDiscount($decoratedPayment->getDiscountAmount());
@@ -65,7 +51,7 @@ class PaiementEleveController
             }
 
             $paymentId = $this->financialService->processPayment($payment);
-            
+
             echo json_encode([
                 'message' => 'Payment created successfully',
                 'payment_id' => $paymentId,

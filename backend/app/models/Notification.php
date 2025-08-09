@@ -2,9 +2,8 @@
 
 namespace App\Models;
 
-use App\Interfaces\INotification;
 
-class Notification implements INotification
+class Notification 
 {
     private $id;
     private $title;

@@ -2,11 +2,8 @@
 
 namespace App\Models;
 
-use App\Interfaces\IPaymentCalculator;
-use App\Interfaces\IDiscountable;
-use App\Interfaces\IExtraFeeable;
 
-class FraisScolaire implements IPaymentCalculator, IDiscountable, IExtraFeeable
+class FraisScolaire 
 {
     private $id;
     private $name;

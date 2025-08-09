@@ -2,26 +2,27 @@
 
 namespace App\Controllers;
 
-use App\Services\StandardBulletinGenerator;
+use App\Services\BulletinService;
 use App\Services\GradeService;
 use App\Services\NotificationService;
 use App\Observers\GradeNotificationObserver;
 use Core\Db;
+use PDO;
 
 class BulletinController
 {
-    private $bulletinGenerator;
+    private $bulletinService;
 
-    public function __construct()
+    public function __construct(PDO $pdo)
     {
         $pdo = Db::connection();
         $gradeService = new GradeService($pdo);
-        $this->bulletinGenerator = new StandardBulletinGenerator($gradeService);
+        $this->bulletinService = new BulletinService( $pdo , $gradeService);
         
         // Attach observer to bulletin generator
         $notificationService = new NotificationService($pdo);
-        $observer = new GradeNotificationObserver($notificationService);
-        $this->bulletinGenerator->attach($observer);
+        $observer = new GradeNotificationObserver(notificationService: $notificationService);
+        $this->bulletinService->attach($observer);
     }
 
     public function generate()
@@ -29,7 +30,7 @@ class BulletinController
         $input = json_decode(file_get_contents('php://input'), true);
         
         try {
-            $bulletin = $this->bulletinGenerator->generateBulletin(
+            $bulletin = $this->bulletinService->generateBulletin(
                 $input['student_id'],
                 $input['course_id'],
                 $input['evaluation_id']

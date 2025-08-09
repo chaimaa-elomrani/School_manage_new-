@@ -19,138 +19,23 @@ class ParentController
         }
     }
 
-    public function getChildren($parentId)
+
+    public function listParents()
     {
-        try {
-            header('Content-Type: application/json');
-            $children = $this->parentService->getChildren($parentId);
-            echo json_encode(['success' => true, 'data' => $children]);
-        } catch (\Exception $e) {
-            error_log("Parent children fetch error: " . $e->getMessage());
-            http_response_code(500);
-            echo json_encode(['success' => false, 'error' => 'Failed to fetch children data']);
-        }
+        $parents = $this->parentService->listParents();
+        return $parents;
     }
 
-    public function getChildGrades($childId)
+    public function getParentById($id)
     {
-        try {
-            header('Content-Type: application/json');
-            $grades = $this->parentService->getChildGrades($childId);
-            echo json_encode(['success' => true, 'data' => $grades]);
-        } catch (\Exception $e) {
-            error_log("Child grades fetch error: " . $e->getMessage());
-            http_response_code(500);
-            echo json_encode(['success' => false, 'error' => 'Failed to fetch grades']);
-        }
+        $parent = $this->parentService->getParentById($id);
+        return $parent;
     }
 
-    public function getChildSchedule($childId)
+
+    public function delete($id)
     {
-        try {
-            header('Content-Type: application/json');
-            $schedule = $this->parentService->getChildSchedule($childId);
-            echo json_encode(['success' => true, 'data' => $schedule]);
-        } catch (\Exception $e) {
-            error_log("Child schedule fetch error: " . $e->getMessage());
-            http_response_code(500);
-            echo json_encode(['success' => false, 'error' => 'Failed to fetch schedule']);
-        }
+        $result = $this->parentService->delete($id);
+        return $result;
     }
-
-    public function getChildStats($childId)
-    {
-        try {
-            header('Content-Type: application/json');
-            $stats = $this->parentService->getChildStats($childId);
-            echo json_encode(['success' => true, 'data' => $stats]);
-        } catch (\Exception $e) {
-            error_log("Child stats fetch error: " . $e->getMessage());
-            http_response_code(500);
-            echo json_encode(['success' => false, 'error' => 'Failed to fetch stats']);
-        }
-    }
-
-    public function getChildTeachers($childId)
-    {
-        try {
-            header('Content-Type: application/json');
-            $teachers = $this->parentService->getChildTeachers($childId);
-            echo json_encode(['success' => true, 'data' => $teachers]);
-        } catch (\Exception $e) {
-            error_log("Child teachers fetch error: " . $e->getMessage());
-            http_response_code(500);
-            echo json_encode(['success' => false, 'error' => 'Failed to fetch teachers']);
-        }
-    }
-
-    public function getPayments($parentId)
-    {
-        try {
-            header('Content-Type: application/json');
-            $payments = $this->parentService->getPayments($parentId);
-            echo json_encode(['success' => true, 'data' => $payments]);
-        } catch (\Exception $e) {
-            error_log("Parent payments fetch error: " . $e->getMessage());
-            http_response_code(500);
-            echo json_encode(['success' => false, 'error' => 'Failed to fetch payments']);
-        }
-    }
-
-    public function getMessages($parentId)
-    {
-        try {
-            header('Content-Type: application/json');
-            $messages = $this->parentService->getMessages($parentId);
-            echo json_encode(['success' => true, 'data' => $messages]);
-        } catch (\Exception $e) {
-            error_log("Parent messages fetch error: " . $e->getMessage());
-            http_response_code(500);
-            echo json_encode(['success' => false, 'error' => 'Failed to fetch messages']);
-        }
-    }
-
-    public function getAnnouncements($parentId)
-    {
-        try {
-            header('Content-Type: application/json');
-            $announcements = $this->parentService->getAnnouncements($parentId);
-            echo json_encode(['success' => true, 'data' => $announcements]);
-        } catch (\Exception $e) {
-            error_log("Parent announcements fetch error: " . $e->getMessage());
-            http_response_code(500);
-            echo json_encode(['success' => false, 'error' => 'Failed to fetch announcements']);
-        }
-    }
-
-    // public function sendMessage()
-    // {
-    //     try {
-    //         $input = json_decode(file_get_contents('php://input'), true);
-            
-    //         if (!isset($input['parent_id'], $input['recipient_id'], $input['subject'], $input['content'])) {
-    //             http_response_code(400);
-    //             echo json_encode(['success' => false, 'error' => 'Missing required fields']);
-    //             return;
-    //         }
-
-    //         $result = $this->parentService->sendMessage(
-    //             $input['parent_id'],
-    //             $input['recipient_id'],
-    //             $input['subject'],
-    //             $input['content']
-    //         );
-
-    //         header('Content-Type: application/json');
-    //         if ($result) {
-    //             echo json_encode(['success' => true, 'message' => 'Message sent successfully']);
-    //         } else {
-    //             echo json_encode(['success' => false, 'error' => 'Failed to send message']);
-    //         }
-    //     } catch (\Exception $e) {
-    //         error_log("Send message error: " . $e->getMessage());
-    //         http_response_code(500);
-    //         echo json_encode(['success' => false, 'error' => 'Failed to send message']);
-    //     }
-    // }
 }

@@ -6,7 +6,7 @@ use App\Models\Bulletin;
 use App\Interfaces\ISubject;
 use App\Interfaces\IObserver;
 
-abstract class AbstractBulletinGenerator implements ISubject
+abstract class AbstractBulletinGenerator
 {
     private $observers = [];
 
@@ -61,19 +61,7 @@ abstract class AbstractBulletinGenerator implements ISubject
         return new Bulletin($data);
     }
 
-    // Observer pattern methods
-    public function attach(IObserver $observer): void
-    {
-        $this->observers[] = $observer;
-    }
-
-    public function detach(IObserver $observer): void
-    {
-        $key = array_search($observer, $this->observers);
-        if ($key !== false) {
-            unset($this->observers[$key]);
-        }
-    }
+   
 
     public function notify(string $event, array $data): void
     {

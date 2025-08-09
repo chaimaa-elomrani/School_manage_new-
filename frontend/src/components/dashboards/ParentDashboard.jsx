@@ -14,6 +14,20 @@ import {
   ClockIcon,
 } from "@heroicons/react/24/outline"
 import { Line, Bar } from "react-chartjs-2"
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js"
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend)
+
 
 const ParentDashboard = () => {
   const { user } = useAuth()
@@ -35,7 +49,8 @@ const ParentDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview")
 
   useEffect(() => {
-    if (user?.id) {
+    // Ensure user and parent_id are available before fetching parent-specific data
+    if (user?.parent_id) {
       fetchParentData()
     }
   }, [user])
@@ -50,11 +65,12 @@ const ParentDashboard = () => {
     try {
       setLoading(true)
 
+      // Use user.parent_id for parent-specific endpoints
       const [childrenRes, paymentsRes, messagesRes, announcementsRes] = await Promise.all([
-        api.get(`/parent/children/${user.id}`),
-        api.get(`/parent/payments/${user.id}`),
-        api.get(`/parent/messages/${user.id}`),
-        api.get(`/parent/announcements/${user.id}`),
+        api.get(`/parent/children/${user.parent_id}`),
+        api.get(`/parent/payments/${user.parent_id}`),
+        api.get(`/parent/messages/${user.parent_id}`),
+        api.get(`/parent/announcements/${user.parent_id}`),
       ])
 
       const childrenData = childrenRes.data?.data || []
@@ -65,9 +81,9 @@ const ParentDashboard = () => {
       setChildren(childrenData)
       setPayments(paymentsData)
       setMessages(messagesData)
-      setAnnouncements(announcementsData)
+      setAnnouncements(announcementData)
 
-      // Set first child as selected by default
+      // Set first child as selected by default if children data is available
       if (childrenData.length > 0) {
         setSelectedChild(childrenData[0])
       }

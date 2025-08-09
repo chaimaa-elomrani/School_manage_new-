@@ -1,15 +1,20 @@
 <?php
 namespace App\Services;
 use App\Models\Bulletin;
+use App\Interfaces\INoteService;
+use App\Abstracts\AbstractBulletinGenerator;
+
 use PDO;
 
-class BulletinService
+class BulletinService extends AbstractBulletinGenerator
 {
     private $pdo;
+    private $noteService;
 
-    public function __construct(PDO $pdo)
+    public function __construct(PDO $pdo, INoteService $noteService)
     {
         $this->pdo = $pdo;
+        $this->noteService = $noteService;
     }
 
     public function save(Bulletin $bulletin)
@@ -30,7 +35,7 @@ class BulletinService
 
             $bulletinId = $this->pdo->lastInsertId();
             $this->pdo->commit();
-            
+
             // Return bulletin with ID
             return new Bulletin([
                 'id' => $bulletinId,
@@ -94,7 +99,8 @@ class BulletinService
     {
         try {
             $stmt = $this->pdo->prepare(
-            'UPDATE bulletins SET student_id = :student_id, course_id = :course_id, evaluation_id = :evaluation_id, grade = :grade, general_average = :general_average WHERE id = :id');
+                'UPDATE bulletins SET student_id = :student_id, course_id = :course_id, evaluation_id = :evaluation_id, grade = :grade, general_average = :general_average WHERE id = :id'
+            );
             $stmt->execute([
                 'student_id' => $bulletin->getStudentId(),
                 'course_id' => $bulletin->getCourseId(),
@@ -108,10 +114,43 @@ class BulletinService
         }
     }
 
-    public function delete($id){
+    public function delete($id)
+    {
         $stmt = $this->pdo->prepare('DELETE FROM bulletins WHERE id = :id');
         $stmt->execute(['id' => $id]);
         return true;
     }
+
+
+     public function collectGrades($studentId, $courseId): array
+    {
+        return $this->noteService->getGradesByStudent($studentId);
+    }
+
+    public function calculateAverage(array $grades): float
+    {
+        if (empty($grades)) {
+            return 0.0;
+        }
+
+        $total = 0;
+        foreach ($grades as $grade) {
+            $total += $grade->getScore();
+        }
+
+        return $total / count($grades);
+    }
+
+    public function determineGrade(float $average): string
+    {
+        if ($average >= 90) return 'A';
+        if ($average >= 80) return 'B';
+        if ($average >= 70) return 'C';
+        if ($average >= 60) return 'D';
+        return 'F';
+    }
+
+    
+    
 
 }

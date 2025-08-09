@@ -4,12 +4,13 @@ namespace App\Services;
 
 use App\Interfaces\INoteService;
 use App\Models\Grades;
+use PDO ;
 
 class GradeService implements INoteService
 {
     private $pdo;
 
-    public function __construct($pdo)
+    public function __construct(PDO $pdo)
     {
         $this->pdo = $pdo;
     }

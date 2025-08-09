@@ -2,11 +2,7 @@
 
 namespace App\Models;
 
-use App\Interfaces\IPaymentCalculator;
-use App\Interfaces\IExtraFeeable;
-use App\Interfaces\IPaymentStatus;
-
-class SalaireEnseignant implements IPaymentCalculator, IExtraFeeable, IPaymentStatus
+class SalaireEnseignant 
 {
     private $id;
     private $teacher_id;
@@ -104,3 +100,5 @@ class SalaireEnseignant implements IPaymentCalculator, IExtraFeeable, IPaymentSt
         return "Teacher salary for {$this->month}/{$this->year}";
     }
 }
+
+
