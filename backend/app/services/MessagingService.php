@@ -4,105 +4,91 @@ namespace App\Services;
 
 use App\Models\Message;
 use PDO;
+use Core\Db; // Assuming Core\Db for connection
 
-class MessagingService 
+/**
+ * Handles the storage and retrieval of internal messages.
+ * SRP: Manages internal messaging, distinct from external notifications.
+ */
+class MessagingService
 {
-    private $pdo;
+    private PDO $pdo;
 
-    public function __construct(PDO $pdo)
+    public function __construct()
     {
-        $this->pdo = $pdo;
+        $this->pdo = Db::connection();
     }
 
-    public function sendMessage( $message): bool
+    public function sendMessage(Message $message): Message
     {
+        $this->pdo->beginTransaction();
         try {
             $stmt = $this->pdo->prepare('
-                INSERT INTO messages (sender_id, receiver_id, subject, content, created_at) 
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO messages (sender_id, receiver_id, subject, content, created_at, is_read) 
+                VALUES (:sender_id, :receiver_id, :subject, :content, :created_at, :is_read)
             ');
-            
-            return $stmt->execute([
-                $message->getSenderId(),
-                $message->getReceiverId(),
-                $message->getSubject(),
-                $message->getContent(),
-                $message->getCreatedAt()
+            $stmt->execute([
+                'sender_id' => $message->getSenderId(),
+                'receiver_id' => $message->getReceiverId(),
+                'subject' => $message->getSubject(),
+                'content' => $message->getContent(),
+                'created_at' => $message->getCreatedAt(),
+                'is_read' => $message->isRead() ? 1 : 0, // Convert bool to int for DB
             ]);
+            $messageId = $this->pdo->lastInsertId();
+            $this->pdo->commit();
+
+            $data = $message->toArray();
+            $data['id'] = (int) $messageId;
+            return new Message($data);
         } catch (\Exception $e) {
-            error_log("Message sending failed: " . $e->getMessage());
-            return false;
+            $this->pdo->rollBack();
+            throw $e;
         }
     }
 
     public function getMessages(int $userId): array
     {
-        try {
-            $stmt = $this->pdo->prepare('
-                SELECT * FROM messages 
-                WHERE receiver_id = ? OR sender_id = ? 
-                ORDER BY created_at DESC
-            ');
-            $stmt->execute([$userId, $userId]);
-            
-            $messages = [];
-            while ($row = $stmt->fetch()) {
-                $messages[] = new Message($row);
-            }
-            
-            return $messages;
-        } catch (\Exception $e) {
-            error_log("Failed to get messages: " . $e->getMessage());
-            return [];
+        $stmt = $this->pdo->prepare('
+            SELECT * FROM messages 
+            WHERE receiver_id = :user_id OR sender_id = :user_id 
+            ORDER BY created_at DESC
+        ');
+        $stmt->execute(['user_id' => $userId]);
+        $messages = [];
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $messages[] = new Message($row);
         }
+        return $messages;
     }
 
     public function getConversation(int $user1Id, int $user2Id): array
     {
-        try {
-            $stmt = $this->pdo->prepare('
-                SELECT * FROM messages 
-                WHERE (sender_id = ? AND receiver_id = ?) 
-                   OR (sender_id = ? AND receiver_id = ?) 
-                ORDER BY created_at ASC
-            ');
-            $stmt->execute([$user1Id, $user2Id, $user2Id, $user1Id]);
-            
-            $messages = [];
-            while ($row = $stmt->fetch()) {
-                $messages[] = new Message($row);
-            }
-            
-            return $messages;
-        } catch (\Exception $e) {
-            error_log("Failed to get conversation: " . $e->getMessage());
-            return [];
+        $stmt = $this->pdo->prepare('
+            SELECT * FROM messages 
+            WHERE (sender_id = :user1_id AND receiver_id = :user2_id) 
+               OR (sender_id = :user2_id AND receiver_id = :user1_id) 
+            ORDER BY created_at ASC
+        ');
+        $stmt->execute(['user1_id' => $user1Id, 'user2_id' => $user2Id]);
+        $messages = [];
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $messages[] = new Message($row);
         }
+        return $messages;
     }
 
     public function markAsRead(int $messageId): bool
     {
-        try {
-            $stmt = $this->pdo->prepare('
-                UPDATE messages 
-                SET is_read = TRUE, read_at = NOW() 
-                WHERE id = ?
-            ');
-            return $stmt->execute([$messageId]);
-        } catch (\Exception $e) {
-            error_log("Failed to mark message as read: " . $e->getMessage());
-            return false;
-        }
+        $stmt = $this->pdo->prepare('UPDATE messages SET is_read = TRUE, read_at = NOW() WHERE id = :id');
+        $stmt->execute(['id' => $messageId]);
+        return $stmt->rowCount() > 0;
     }
 
     public function deleteMessage(int $messageId): bool
     {
-        try {
-            $stmt = $this->pdo->prepare('DELETE FROM messages WHERE id = ?');
-            return $stmt->execute([$messageId]);
-        } catch (\Exception $e) {
-            error_log("Failed to delete message: " . $e->getMessage());
-            return false;
-        }
+        $stmt = $this->pdo->prepare('DELETE FROM messages WHERE id = :id');
+        $stmt->execute(['id' => $messageId]);
+        return $stmt->rowCount() > 0;
     }
 }

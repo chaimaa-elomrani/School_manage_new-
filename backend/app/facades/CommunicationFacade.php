@@ -2,58 +2,68 @@
 
 namespace App\Facades;
 
-
 use App\Models\Notification;
 use App\Models\Message;
-use App\Services\NotificationService;
-use PDO;
+use App\Models\Recipient;
+use App\Services\MessagingNotificationService;
+use App\Services\MessagingService;
+use App\Services\EmailChannel;
+use App\Services\SMSChannel;
+use App\Services\RecipientService;
+use App\Interfaces\IEmailChannel;
+use App\Interfaces\ISMSChannel;
+use PDO; // Still needed for MessagingService if it's not refactored to use a repository
 
 class CommunicationFacade
 {
-    private $emailChannel;
-    private $smsChannel;
-    private $messagingService;
-    private $notificationService;
-    private $pdo;
+    private IEmailChannel $emailChannel;
+    private ISMSChannel $smsChannel;
+    private MessagingService $messagingService;
+    private MessagingNotificationService $notificationRepository;
+    private RecipientService $recipientService;
 
     public function __construct(
-        NotificationService $notificationService,
-        PDO $pdo
+        IEmailChannel $emailChannel,
+        ISMSChannel $smsChannel,
+        MessagingService $messagingService,
+        MessagingNotificationService $notificationRepository,
+        RecipientService $recipientService
     ) {
-   
-        $this->notificationService = $notificationService;
-        $this->pdo = $pdo;
+        $this->emailChannel = $emailChannel;
+        $this->smsChannel = $smsChannel;
+        $this->messagingService = $messagingService;
+        $this->notificationRepository = $notificationRepository;
+        $this->recipientService = $recipientService;
     }
 
-    public function sendNotificationByEmail(string $email, string $title, string $message): bool
+    /**
+     * Sends an email notification and records it.
+     */
+    public function sendNotificationByEmail(string $toEmail, string $title, string $messageContent): bool
     {
         try {
-            // Validate email
-            if (!$this->emailChannel->validateEmail($email)) {
-                throw new \InvalidArgumentException("Invalid email address: $email");
+            if (!$this->emailChannel->validateEmail($toEmail)) {
+                throw new \InvalidArgumentException("Invalid email address: $toEmail");
             }
 
-            // Create notification record
             $notification = new Notification([
                 'title' => $title,
-                'message' => $message,
-                'type' => 'email'
+                'message' => $messageContent,
+                'type' => 'email',
+                'status' => 'pending'
             ]);
 
-            // Send email
-            $emailSent = $this->emailChannel->sendEmail($email, $title, $message);
-            
+            $emailSent = $this->emailChannel->sendEmail($toEmail, $title, $messageContent);
+
             if ($emailSent) {
-                $notification->send();
-                error_log("Email notification sent successfully to: $email");
+                $notification->markAsSent();
+                error_log("Email notification sent successfully to: $toEmail");
             } else {
                 $notification->markAsFailed();
-                error_log("Failed to send email notification to: $email");
+                error_log("Failed to send email notification to: $toEmail");
             }
 
-            // Save notification to database
-            $this->saveNotification($notification);
-            
+            $this->notificationRepository->save($notification);
             return $emailSent;
         } catch (\Exception $e) {
             error_log("Email notification error: " . $e->getMessage());
@@ -61,35 +71,34 @@ class CommunicationFacade
         }
     }
 
-    public function sendNotificationBySMS(string $phoneNumber, string $message): bool
+    /**
+     * Sends an SMS notification and records it.
+     */
+    public function sendNotificationBySMS(string $phoneNumber, string $messageContent): bool
     {
         try {
-            // Validate phone number
             if (!$this->smsChannel->validatePhoneNumber($phoneNumber)) {
                 throw new \InvalidArgumentException("Invalid phone number: $phoneNumber");
             }
 
-            // Create notification record
             $notification = new Notification([
                 'title' => 'SMS Notification',
-                'message' => $message,
-                'type' => 'sms'
+                'message' => $messageContent,
+                'type' => 'sms',
+                'status' => 'pending'
             ]);
 
-            // Send SMS
-            $smsSent = $this->smsChannel->sendSMS($phoneNumber, $message);
-            
+            $smsSent = $this->smsChannel->sendSMS($phoneNumber, $messageContent);
+
             if ($smsSent) {
-                $notification->send();
+                $notification->markAsSent();
                 error_log("SMS notification sent successfully to: $phoneNumber");
             } else {
                 $notification->markAsFailed();
                 error_log("Failed to send SMS notification to: $phoneNumber");
             }
 
-            // Save notification to database
-            $this->saveNotification($notification);
-            
+            $this->notificationRepository->save($notification);
             return $smsSent;
         } catch (\Exception $e) {
             error_log("SMS notification error: " . $e->getMessage());
@@ -97,104 +106,91 @@ class CommunicationFacade
         }
     }
 
-    public function sendNotificationByBoth(string $email, string $phoneNumber, string $title, string $message): bool
-    {
-        $emailResult = $this->sendNotificationByEmail($email, $title, $message);
-        $smsResult = $this->sendNotificationBySMS($phoneNumber, $message);
+    /**
+     * Sends an internal message and records it.
+     */
+   public function sendInternalMessage(int $senderId, int $receiverId, string $subject, string $content): bool
+{
+    try {
+        $message = new Message([
+            'sender_id' => $senderId,
+            'receiver_id' => $receiverId,
+            'subject' => $subject,
+            'content' => $content
+        ]);
         
-        return $emailResult && $smsResult;
-    }
+        $result = $this->messagingService->sendMessage($message);
 
-    public function sendInternalMessage(int $senderId, int $receiverId, string $subject, string $content): bool
-    {
-        try {
-            $message = new Message([
-                'sender_id' => $senderId,
-                'receiver_id' => $receiverId,
-                'subject' => $subject,
-                'content' => $content
-            ]);
-
-            $result = $this->messagingService->sendMessage($message);
-            
-            if ($result) {
-                error_log("Internal message sent from user $senderId to user $receiverId");
-            } else {
-                error_log("Failed to send internal message from user $senderId to user $receiverId");
-            }
-            
-            return $result;
-        } catch (\Exception $e) {
-            error_log("Internal message error: " . $e->getMessage());
+        if ($result instanceof Message) {
+            error_log("Internal message sent from user $senderId to user $receiverId");
+            return true;
+        } else {
+            error_log("Failed to send internal message from user $senderId to user $receiverId");
             return false;
         }
+    } catch (\Exception $e) {
+        error_log("Internal message error: " . $e->getMessage());
+        return false;
     }
+}
 
-    public function broadcastNotification(array $recipients, string $title, string $message, array $channels = ['email']): array
+    /**
+     * Broadcasts a notification to multiple recipients via specified channels.
+     * @param int[] $recipientIds Array of recipient IDs.
+     * @param string $title Notification title.
+     * @param string $message Notification message.
+     * @param string[] $channels Array of channels to use (e.g., ['email', 'sms', 'internal']).
+     * @return array Results for each recipient and channel.
+     */
+    public function broadcastNotification(array $recipientIds, string $title, string $message, array $channels = ['email']): array
     {
         $results = [];
-        
+        $recipients = $this->recipientService->getRecipientsByIds($recipientIds);
+
         foreach ($recipients as $recipient) {
             $recipientResults = [];
-            
             foreach ($channels as $channel) {
                 switch ($channel) {
                     case 'email':
-                        if (isset($recipient['email'])) {
+                        if ($recipient->getEmail()) {
                             $recipientResults['email'] = $this->sendNotificationByEmail(
-                                $recipient['email'], 
-                                $title, 
+                                $recipient->getEmail(),
+                                $title,
                                 $message
                             );
+                        } else {
+                            $recipientResults['email'] = false;
+                            error_log("Recipient ID {$recipient->getId()} has no email for email notification.");
                         }
                         break;
-                        
                     case 'sms':
-                        if (isset($recipient['phone'])) {
+                        if ($recipient->getPhoneNumber()) {
                             $recipientResults['sms'] = $this->sendNotificationBySMS(
-                                $recipient['phone'], 
+                                $recipient->getPhoneNumber(),
                                 $message
                             );
+                        } else {
+                            $recipientResults['sms'] = false;
+                            error_log("Recipient ID {$recipient->getId()} has no phone number for SMS notification.");
                         }
                         break;
-                        
                     case 'internal':
-                        if (isset($recipient['user_id'])) {
-                            $recipientResults['internal'] = $this->sendInternalMessage(
-                                1, // System user ID
-                                $recipient['user_id'], 
-                                $title, 
-                                $message
-                            );
-                        }
+                        // Assuming system user ID is 1 for internal broadcasts
+                        $recipientResults['internal'] = $this->sendInternalMessage(
+                            1, // System user ID
+                            $recipient->getId(),
+                            $title,
+                            $message
+                        );
+                        break;
+                    default:
+                        error_log("Unknown communication channel: $channel");
+                        $recipientResults[$channel] = false;
                         break;
                 }
             }
-            
-            $results[$recipient['id'] ?? 'unknown'] = $recipientResults;
+            $results[$recipient->getId()] = $recipientResults;
         }
-        
         return $results;
-    }
-
-    private function saveNotification(Notification $notification): void
-    {
-        try {
-            $stmt = $this->pdo->prepare('
-                INSERT INTO notifications (title, message, type, status, created_at, sent_at) 
-                VALUES (?, ?, ?, ?, ?, ?)
-            ');
-            
-            $stmt->execute([
-                $notification->getTitle(),
-                $notification->getMessage(),
-                $notification->getType(),
-                $notification->getStatus(),
-                $notification->getCreatedAt(),
-                $notification->getStatus() === 'sent' ? date('Y-m-d H:i:s') : null
-            ]);
-        } catch (\Exception $e) {
-            error_log("Failed to save notification: " . $e->getMessage());
-        }
     }
 }

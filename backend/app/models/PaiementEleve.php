@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Interfaces\IPayable;
 
-class PaiementEleve
+class PaiementEleve implements IPayable
 {
     private ?int $id;
     private int $studentId;

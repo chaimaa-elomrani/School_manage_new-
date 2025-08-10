@@ -23,7 +23,7 @@ class BulletinController
         $this->pdo = Db::connection(); 
         $noteService = new NoteService($pdo); 
         $this->bulletinGenerator = new BulletinGeneratorService($noteService);
-        $this->studentService = new StudentService($pdo); 
+        $this->studentService = new StudentService(); 
         $this->courseService = new CourseService($pdo); 
     }
 

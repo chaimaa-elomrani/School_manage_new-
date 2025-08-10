@@ -6,6 +6,7 @@ use App\Models\Student;
 use App\Services\StudentService;
 use App\Factories\PersonFactory;
 use Core\Db;
+use PDO;
 
 class StudentController
 {
@@ -16,7 +17,7 @@ class StudentController
     {
         if ($studentService === null) {
             $pdo = Db::connection();
-            $this->studentService = new StudentService($pdo);
+            $this->studentService = new StudentService();
         } else {
             $this->studentService = $studentService;
         }

@@ -15,7 +15,7 @@ class TeacherController
     {
         if ($teacherService === null) {
             $pdo = Db::connection();
-            $this->teacherService = new TeacherService($pdo);
+            $this->teacherService = new TeacherService();
         } else {
             $this->teacherService = $teacherService;
         }

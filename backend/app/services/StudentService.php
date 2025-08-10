@@ -4,15 +4,16 @@ namespace App\Services;
 
 use App\Models\Student;
 use PDO;
+use Core\Db;
 
 class StudentService
 {
 
     private $pdo;
 
-    public function __construct(PDO $pdo)
+    public function __construct()
     {
-        $this->pdo = $pdo;
+         $this->pdo = Db::connection();
     }
 
     public function listStudents()

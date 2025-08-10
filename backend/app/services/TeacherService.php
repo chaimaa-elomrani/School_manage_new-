@@ -4,13 +4,14 @@ namespace App\Services;
 
 use App\Models\Teacher;
 use PDO;
+use Core\Db;
 
 class TeacherService{
 
     private $pdo; 
 
-    public function __construct(PDO $pdo){
-        $this->pdo = $pdo; 
+    public function __construct(){
+         $this->pdo = Db::connection();
     }
 
     public function listTeachers(){

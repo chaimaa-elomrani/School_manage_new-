@@ -40,7 +40,9 @@ class ScheduleService
                 'end_time' => $schedule->getEndTime()
             ];
             
-            return new Schedule($scheduleData);
+             $schedule = new Schedule($scheduleData);
+
+            return $schedule;
         } catch (\Exception $e) {
             $this->pdo->rollback();
             throw $e;

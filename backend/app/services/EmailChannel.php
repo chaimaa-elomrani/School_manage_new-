@@ -2,35 +2,45 @@
 
 namespace App\Services;
 
+use App\Interfaces\IEmailChannel;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
-class EmailChannel 
+class EmailChannel implements IEmailChannel
 {
-    private $config;
+    private array $config;
 
     public function __construct(array $config = [])
     {
-        $this->config = $config;
+        // Default configuration, can be overridden
+        $this->config = array_merge([
+            'host' => 'smtp.gmail.com',
+            'smtp_auth' => true,
+            'username' => 'your_email@gmail.com', // IMPORTANT: Replace with your actual email
+            'password' => 'your_app_password', // IMPORTANT: Replace with your actual app password
+            'smtp_secure' => PHPMailer::ENCRYPTION_STARTTLS,
+            'port' => 587,
+            'from_email' => 'your_email@gmail.com',
+            'from_name' => 'School Management System',
+        ], $config);
     }
 
     public function sendEmail(string $to, string $subject, string $body): bool
     {
         $mail = new PHPMailer(true);
-
         try {
             // Server settings
             $mail->isSMTP();
-            $mail->Host = 'smtp.gmail.com';
-            $mail->SMTPAuth = true;
-            $mail->Username = 'chaimaelomrani6@gmail.com'; // PUT YOUR REAL EMAIL HERE
-            $mail->Password = 'ryesdmadagrpmfuo';    // PUT YOUR APP PASSWORD HERE
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port = 587;
+            $mail->Host = $this->config['host'];
+            $mail->SMTPAuth = $this->config['smtp_auth'];
+            $mail->Username = $this->config['username'];
+            $mail->Password = $this->config['password'];
+            $mail->SMTPSecure = $this->config['smtp_secure'];
+            $mail->Port = $this->config['port'];
 
             // Recipients
-            $mail->setFrom('chaimaelomrani6@gmail.com', 'School Management');
+            $mail->setFrom($this->config['from_email'], $this->config['from_name']);
             $mail->addAddress($to);
 
             // Content
@@ -41,7 +51,6 @@ class EmailChannel
             $result = $mail->send();
             error_log("Email sent to: $to - Result: " . ($result ? 'SUCCESS' : 'FAILED'));
             return $result;
-            
         } catch (Exception $e) {
             error_log("PHPMailer Error: " . $e->getMessage());
             return false;
@@ -53,7 +62,3 @@ class EmailChannel
         return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
     }
 }
-
-
-
-
