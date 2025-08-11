@@ -9,7 +9,7 @@ const CourseList = () => {
   const [courses, setCourses] = useState([])
   const [teachers, setTeachers] = useState([])
   const [subjects, setSubjects] = useState([])
-  const [rooms, setRooms] = useState([]) // Added missing rooms state
+  const [classess, setclassess] = useState([]) // Added missing classess state
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [showModal, setShowModal] = useState(false)
@@ -20,7 +20,7 @@ const CourseList = () => {
     description: "",
     teacher_id: "",
     subject_id: "",
-    class_id: "", // Changed room_id to class_id to match backend
+    class_id: "", // Changed classes_id to class_id to match backend
     duration: "",
     start_date: "",
     end_date: "",
@@ -41,7 +41,7 @@ const CourseList = () => {
     fetchCourses()
     fetchTeachers()
     fetchSubjects()
-    fetchRooms()
+    fetchclassess()
   }, [])
 
   // Add a separate useEffect to refetch courses when teachers are loaded
@@ -77,7 +77,7 @@ const CourseList = () => {
         teacher_name: course.teacher_name || "Unassigned",
         subject_id: course.subject_id,
         subject_name: course.subject_name || "No Subject",
-        class_id: course.class_id, // Changed room_id to class_id to match backend
+        class_id: course.class_id, // Changed classes_id to class_id to match backend
         duration: course.duration,
         start_date: course.start_date,
         end_date: course.end_date,
@@ -126,30 +126,27 @@ const CourseList = () => {
     }
   }
 
-  const fetchRooms = async () => {
+  const fetchclassess = async () => {
     try {
       const response = await api.get("/showClasses")
-      const roomsData = response.data?.data || response.data || []
-      setRooms(Array.isArray(roomsData) ? roomsData : [])
+      const classessData = response.data?.data || response.data || []
+      setclassess(Array.isArray(classessData) ? classessData : [])
     } catch (err) {
-      console.warn("Rooms endpoint not available:", err.message)
-      setRooms([]) // Set empty array instead of throwing error
+      console.warn("classess endpoint not available:", err.message)
+      setclassess([]) // Set empty array instead of throwing error
     }
   }
 
   const handleCreate = async (e) => {
     e.preventDefault()
     try {
-      console.log("Creating course with data:", formData)
       await api.post("/createCourse", formData)
       setShowModal(false)
       resetForm()
       fetchCourses()
       alert("Course created successfully!")
     } catch (err) {
-      console.error("Course creation error:", err)
-      console.error("Error response:", err.response?.data)
-      alert("Failed to create course: " + (err.response?.data?.error || err.response?.data?.message || err.message))
+      alert("Failed to create course: " + (err.response?.data?.error || err.message))
     }
   }
 
@@ -191,7 +188,7 @@ const CourseList = () => {
         description: course.description || "",
         teacher_id: course.teacher_id || "",
         subject_id: course.subject_id || "",
-        class_id: course.class_id || "", // Changed room_id to class_id to match backend
+        class_id: course.class_id || "", // Changed classes_id to class_id to match backend
         duration: course.duration || "",
         start_date: course.start_date || "",
         end_date: course.end_date || "",
@@ -208,7 +205,7 @@ const CourseList = () => {
       description: "",
       teacher_id: "",
       subject_id: "",
-      class_id: "", // Changed room_id to class_id to match backend
+      class_id: "", // Changed classes_id to class_id to match backend
       duration: "",
       start_date: "",
       end_date: "",
@@ -306,7 +303,7 @@ const CourseList = () => {
                 </div>
               </div>
 
-              {/* Subject & Room Information */}
+              {/* Subject & classes Information */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex items-center space-x-2 p-2 bg-green-50 rounded-lg">
                   <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
@@ -446,8 +443,8 @@ const CourseList = () => {
                       required
                     >
                       <option value="">Select a teacher</option>
-                      {teachers.map((teacher, index) => (
-                        <option key={teacher.id || `teacher-${index}`} value={teacher.id}>
+                      {teachers.map((teacher) => (
+                        <option key={teacher.id} value={teacher.id}>
                           {teacher.first_name} {teacher.last_name} - {teacher.specialite}
                         </option>
                       ))}
@@ -463,13 +460,31 @@ const CourseList = () => {
                       required
                     >
                       <option value="">Select a subject</option>
-                      {subjects.map((subject, index) => (
-                        <option key={subject.id || `subject-${index}`} value={subject.id}>
+                      {subjects.map((subject) => (
+                        <option key={subject.id} value={subject.id}>
                           {subject.name || subject.title}
                         </option>
                       ))}
                     </select>
                   </div>
+                  {classess.length > 0 && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Class</label>
+                      <select
+                        value={formData.class_id}
+                        onChange={(e) => setFormData({ ...formData, class_id: e.target.value })}
+                        disabled={modalMode === "view"}
+                        className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option value="">Select a class</option>
+                        {classess.map((classes) => (
+                          <option key={classes.id} value={classes.id}>
+                            {classes.number || classes.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Duration (hours)</label>
@@ -483,36 +498,23 @@ const CourseList = () => {
                         required
                       />
                     </div>
-                    {rooms.length > 0 ? (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">Class</label>
-                        <select
-                          value={formData.class_id}
-                          onChange={(e) => setFormData({ ...formData, class_id: e.target.value })}
-                          disabled={modalMode === "view"}
-                          className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-                          required
-                        >
-                          <option value="">Select a class</option>
-                          {rooms.map((room, index) => (
-                            <option key={room.id || `room-${index}`} value={room.id}>
-                              {room.number || room.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    ) : (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">Class</label>
-                        <input
-                          type="text"
-                          value="No classes available"
-                          disabled
-                          className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 text-gray-500"
-                        />
-                        <input type="hidden" value="" onChange={(e) => setFormData({ ...formData, class_id: null })} />
-                      </div>
-                    )}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Class</label>
+                      <select
+                        value={formData.class_id}
+                        onChange={(e) => setFormData({ ...formData, class_id: e.target.value })}
+                        disabled={modalMode === "view"}
+                        className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                        required
+                      >
+                        <option value="">Select a class</option>
+                        {classess.map((classes) => (
+                          <option key={classes.id} value={classes.id}>
+                            {classes.number || classes.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -566,4 +568,3 @@ const CourseList = () => {
 }
 
 export default CourseList
-  

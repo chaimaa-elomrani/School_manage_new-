@@ -16,7 +16,7 @@ class ClasseService
 
     public function create(Classe $classe)
     {
-        $sql = "INSERT INTO classes (number) VALUES (:number)";
+        $sql = "INSERT INTO classes (number, capacity) VALUES (:number, :capacity)";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
             'number' => $classe->getNumber(),

@@ -20,7 +20,7 @@ use App\Controllers\CommunicationController;
 use App\Controllers\ParentController; 
 use App\Services\EnhancedStudentService; 
 use App\Services\EnhancedTeacherService;
-use App\Controllers\ClassroomController; 
+use App\Controllers\ClassClasseController; 
 use Core\Db; 
 
 // --- Authentication Routes --- tested 
@@ -40,12 +40,12 @@ $router->get('/showTeacher/{id}', 'TeacherController@getTeacherById');
 $router->delete('/deleteTeacher/{id}', 'TeacherController@delete');
 
 // --- classe Routes ---
-$router->post('/createClasse', 'RoomController@create');
-$router->get('/showClasses', 'RoomController@listClasses');
-$router->get('/showClasse/{id}', 'RoomController@getClassById');
-$router->post('/updateClasse/{id}', 'RoomController@update'); 
-$router->delete('/deleteClasse/{id}', 'RoomController@delete');
-$router->get('/getAvailableClasses', 'RoomController@getAvailableClasses');
+$router->post('/createClasse', 'ClasseController@create');
+$router->get('/showClasses', 'ClasseController@listClasses');
+$router->get('/showClasse/{id}', 'ClasseController@getClassById');
+$router->post('/updateClasse/{id}', 'ClasseController@update'); 
+$router->delete('/deleteClasse/{id}', 'ClasseController@delete');
+$router->get('/getAvailableClasses', 'ClasseController@getAvailableClasses');
 
 
 
@@ -108,13 +108,13 @@ $router->put('/subjects', 'SubjectController@updateSubject');
 $router->delete('/subjects', 'SubjectController@deleteSubject');
 
 
-// -- --- Logical Classroom Routes ---
-$router->post('/classrooms', 'ClassroomController@createClassroom');
-$router->get('/classrooms', 'ClassroomController@listClassrooms');
-$router->get('/classrooms/get', 'ClassroomController@getById'); // e.g., /classrooms/get?id=1&with_students=true
-$router->put('/classrooms', 'ClassroomController@update');
-$router->delete('/classrooms', 'ClassroomController@delete');
-$router->post('/classrooms/assign-student', 'ClassroomController@assignStudent');
-$router->delete('/classrooms/unassign-student', 'ClassroomController@unassignStudent');
-$router->put('/classrooms/assign-teacher', 'ClassroomController@assignTeacher'); // Using PUT for update
-$router->put('/classrooms/unassign-teacher', 'ClassroomController@unassignTeacher');
+// -- --- Logical ClassClasse Routes ---
+$router->post('/classClasses', 'ClassClasseController@createClassClasse');
+$router->get('/classClasses', 'ClassClasseController@listClassClasses');
+$router->get('/classClasses/get', 'ClassClasseController@getById'); // e.g., /classClasses/get?id=1&with_students=true
+$router->put('/classClasses', 'ClassClasseController@update');
+$router->delete('/classClasses', 'ClassClasseController@delete');
+$router->post('/classClasses/assign-student', 'ClassClasseController@assignStudent');
+$router->delete('/classClasses/unassign-student', 'ClassClasseController@unassignStudent');
+$router->put('/classClasses/assign-teacher', 'ClassClasseController@assignTeacher'); // Using PUT for update
+$router->put('/classClasses/unassign-teacher', 'ClassClasseController@unassignTeacher');

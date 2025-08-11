@@ -1,62 +1,91 @@
-import { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { Link, useNavigate } from 'react-router-dom';
-import { EyeIcon, EyeSlashIcon, EnvelopeIcon, LockClosedIcon, AcademicCapIcon } from '@heroicons/react/24/outline';
+"use client"
+
+import { useState } from "react"
+import { useAuth } from "../../contexts/AuthContext"
+import { Link, useNavigate } from "react-router-dom"
+import { EyeIcon, EyeSlashIcon, EnvelopeIcon, LockClosedIcon, AcademicCapIcon } from "@heroicons/react/24/outline"
 
 const Login = () => {
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const { login } = useAuth();
-  const navigate = useNavigate();
+    email: "",
+    password: "",
+  })
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
+  const { login } = useAuth()
+  const navigate = useNavigate()
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
-    });
+      [e.target.name]: e.target.value,
+    })
     // Clear error when user starts typing
-    if (error) setError('');
-  };
+    if (error) setError("")
+  }
 
   const validateForm = () => {
     if (!formData.email.trim()) {
-      setError('Email is required');
-      return false;
+      setError("Email is required")
+      return false
     }
     if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      setError('Email is invalid');
-      return false;
+      setError("Email is invalid")
+      return false
     }
     if (!formData.password) {
-      setError('Password is required');
-      return false;
+      setError("Password is required")
+      return false
     }
-    return true;
-  };
+    return true
+  }
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
+    if (!validateForm()) return
 
-    if (!validateForm()) return;
-
-    setError('');
-    setLoading(true);
+    setError("")
+    setLoading(true)
 
     try {
-      await login(formData.email, formData.password);
-      navigate('/dashboard');
+      const response = await login(formData.email, formData.password)
+
+      // Get user data from the response
+      const responseData = response.data || response
+      const userData = responseData.user
+
+      console.log("Login successful, user role:", userData?.role) // Debug log
+
+      // Role-based navigation
+      if (userData?.role) {
+        switch (userData.role.toLowerCase()) {
+          case "admin":
+            navigate("/dashboard")
+            break
+          case "teacher":
+            navigate("/teacher-dashboard")
+            break
+          case "student":
+            navigate("/student-dashboard")
+            break
+          case "parent":
+            navigate("/parent-dashboard")
+            break
+          default:
+            navigate("/dashboard")
+        }
+      } else {
+        // Fallback to general dashboard
+        navigate("/dashboard")
+      }
     } catch (error) {
-      setError(error.error || 'Login failed');
+      console.error("Login failed:", error)
+      setError(error.error || error.message || "Login failed")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
@@ -72,9 +101,7 @@ const Login = () => {
         <div className="p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
-                {error}
-              </div>
+              <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">{error}</div>
             )}
 
             <div className="space-y-2">
@@ -104,12 +131,11 @@ const Login = () => {
                 <input
                   id="password"
                   name="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
                   value={formData.password}
                   onChange={handleChange}
                   autoComplete="current-password"
-
                   className="w-full pl-12 pr-12 py-3 text-base border-2 border-gray-300 rounded-md focus:border-black focus:outline-none transition-colors"
                 />
                 <button
@@ -133,7 +159,7 @@ const Login = () => {
                   Signing In...
                 </div>
               ) : (
-                'Sign In'
+                "Sign In"
               )}
             </button>
           </form>
@@ -147,14 +173,26 @@ const Login = () => {
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">Demo Credentials:</p>
             <div className="mt-2 text-xs text-gray-500 space-y-1">
-              <p>Email: alex@school.com</p>
-              <p>Password: 123456</p>
+              <div className="grid grid-cols-1 gap-2">
+                <div className="p-2 bg-gray-50 rounded">
+                  <p className="font-medium">Admin:</p>
+                  <p>alex@school.com / 123456</p>
+                </div>
+                <div className="p-2 bg-gray-50 rounded">
+                  <p className="font-medium">Teacher:</p>
+                  <p>teacher@school.com / 123456</p>
+                </div>
+                <div className="p-2 bg-gray-50 rounded">
+                  <p className="font-medium">Student:</p>
+                  <p>student@school.com / 123456</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Login;
+export default Login
