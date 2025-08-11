@@ -16,23 +16,29 @@ class StudentService
          $this->pdo = Db::connection();
     }
 
-    public function listStudents()
+ public function listStudents(): array
     {
-
-        $sql = "SELECT s.person_id , p.first_name , p.last_name, p.email , p.phone FROM students s
-                JOIN person p ON s.person_id = p.id";
-
-        $stmt = $this->pdo->prepare($sql);
+        $stmt = $this->pdo->prepare('SELECT s.person_id, s.classroom_id , p.first_name , p.last_name, p.email , p.phone , c.name , c.academic_year, ct.teacher_id , t.person_id  FROM students s
+                JOIN classrooms c ON s.classroom_id = c.id
+                JOIN classroom_teachers ct ON c.id = ct.classroom_id
+                JOIN teachers t ON ct.teacher_id = t.id
+                JOIN person p ON s.person_id = p.id');
         $stmt->execute();
-
-        $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $students = [];
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            // Assuming your Student model can be instantiated with an associative array
+            $students[] = new Student($row);
+        }
         return $students;
     }
 
     public function getStudentById($id)
     {
 
-        $sql = "SELECT s.person_id , p.first_name , p.last_name, p.email , p.phone FROM students s
+        $sql = "SELECT s.person_id, s.classroom_id , p.first_name , p.last_name, p.email , p.phone , c.name , c.academic_year, ct.teacher_id , t.person_id  FROM students s
+                JOIN classrooms c ON s.classroom_id = c.id
+                JOIN classroom_teachers ct ON c.id = ct.classroom_id
+                JOIN teachers t ON ct.teacher_id = t.id
                 JOIN person p ON s.person_id = p.id
                 WHERE s.person_id = :id";
 

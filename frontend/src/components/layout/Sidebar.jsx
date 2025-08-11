@@ -22,7 +22,6 @@ const menuItems = {
     { icon: AcademicCapIcon, label: "Teachers", path: "/teachers" },
     { icon: BookOpenIcon, label: "Courses", path: "/courses" },
     { icon: CalendarIcon, label: "Schedule", path: "/schedule" },
-    { icon: DocumentTextIcon, label: "Reports", path: "/reports" },
     { icon: CurrencyDollarIcon, label: "Finance", path: "/finance" },
     { icon: ChatBubbleLeftRightIcon, label: "Communication", path: "/communication" },
     { icon: CogIcon, label: "Settings", path: "/settings" },
@@ -45,7 +44,6 @@ const menuItems = {
   parent: [
     { icon: HomeIcon, label: "Dashboard", path: "/dashboard" },
     { icon: UsersIcon, label: "My Children", path: "/children" },
-    { icon: DocumentTextIcon, label: "Reports", path: "/reports" },
     { icon: CurrencyDollarIcon, label: "Payments", path: "/payments" },
     { icon: ChatBubbleLeftRightIcon, label: "Messages", path: "/messages" },
   ],

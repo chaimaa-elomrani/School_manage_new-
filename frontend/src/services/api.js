@@ -63,7 +63,7 @@ export async function fetchStudentData(studentId) {
     // For demo purposes, we'll return mock data
     // In production, uncomment the API calls below
     
-    /*
+    
     const [
       profileRes,
       scheduleRes,
@@ -73,13 +73,9 @@ export async function fetchStudentData(studentId) {
       assignmentsRes,
       announcementsRes
     ] = await Promise.all([
-      api.get(`/student/profile/${studentId}`),
-      api.get(`/student/schedule/${studentId}`),
-      api.get(`/student/teachers/${studentId}`),
-      api.get(`/student/grades/${studentId}`),
-      api.get(`/student/payments/${studentId}`),
-      api.get(`/student/assignments/${studentId}`),
-      api.get(`/student/announcements/${studentId}`)
+      api.get(`/showStudent/${studentId}`),
+      api.get(`//showStudent/{id}/${studentId}`),
+      api.get(`/deleteStudent/${studentId}`),
     ])
     
     return {
@@ -91,7 +87,7 @@ export async function fetchStudentData(studentId) {
       assignments: assignmentsRes.data?.data || [],
       announcements: announcementsRes.data?.data || []
     }
-    */
+    
     
     // Mock data for demonstration
     return {

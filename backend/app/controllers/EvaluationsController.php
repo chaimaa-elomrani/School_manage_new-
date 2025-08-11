@@ -15,7 +15,7 @@ class EvaluationsController
             $this->evaluationService = $evaluationService;
         } else {
             $pdo = Db::connection();
-            $this->evaluationService = new EvaluationService($pdo);
+            $this->evaluationService = new EvaluationService();
         }
     }
 

@@ -23,7 +23,6 @@ export function StudentDashboard() {
     teachers: [],
     grades: [],
     evaluations: [],
-    assignments: [],
     announcements: [],
   })
   const [loading, setLoading] = useState(true)

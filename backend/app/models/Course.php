@@ -23,7 +23,7 @@ class Course
     public function __construct(array $data = [])
     {
         $this->id = $data['id'] ?? null;
-        $this->name = $data['title'] ?? '';
+        $this->title = $data['title'] ?? '';
         $this->description = $data['description'] ?? '';
         $this->subject_id = $data['subject_id'] ?? null;
         $this->teacher_id = $data['teacher_id'] ?? null;

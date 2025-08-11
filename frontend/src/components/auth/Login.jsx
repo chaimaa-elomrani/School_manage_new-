@@ -11,7 +11,7 @@ const Login = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  
+
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -42,9 +42,9 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     setError('');
     setLoading(true);
 
@@ -108,6 +108,8 @@ const Login = () => {
                   placeholder="Enter your password"
                   value={formData.password}
                   onChange={handleChange}
+                  autoComplete="current-password"
+
                   className="w-full pl-12 pr-12 py-3 text-base border-2 border-gray-300 rounded-md focus:border-black focus:outline-none transition-colors"
                 />
                 <button

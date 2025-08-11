@@ -55,7 +55,7 @@ class SalaireEnseignantService
 
     public function getAll(): array
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM salaries ORDER BY year DESC, month DESC');
+        $stmt = $this->pdo->prepare('SELECT * FROM salaires_enseignants ORDER BY year DESC, month DESC');
         $stmt->execute();
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $salaries = [];

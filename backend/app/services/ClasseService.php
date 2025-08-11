@@ -4,21 +4,23 @@ namespace App\Services;
 
 use App\Models\Classe;
 use PDO;
-
+use Core\Db;
 class ClasseService
 {
-    private $pdo;
+    private PDO $pdo;
 
-    public function __construct(PDO $pdo)
+    public function __construct()
     {
-        $this->pdo = $pdo;
+        $this->pdo = Db::connection();
     }
 
-    public function create(Classe $classe){
+    public function create(Classe $classe)
+    {
         $sql = "INSERT INTO classes (number) VALUES (:number)";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
             'number' => $classe->getNumber(),
+            'capacity' => $classe->getCapacity(),
         ]);
         return $this->pdo->lastInsertId();
     }
@@ -39,6 +41,25 @@ class ClasseService
         return $classe;
     }
 
+    public function update(Classe $classe)
+    {
+        $this->pdo->beginTransaction();
+        try {
+            $sql = "UPDATE classes SET  number = :number , capacity = :capacity WHERE id = :id";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([
+                'id' => $classe->getId(),
+                'number' => $classe->getNumber(),
+                'capacity' => $classe->getCapacity(),
+            ]);
+            $this->pdo->commit();
+            return $classe;
+        } catch (\Exception $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+    }
+
     public function delete($id)
     {
         $stmt = $this->pdo->prepare('DELETE FROM classes WHERE id = :id');
@@ -46,8 +67,9 @@ class ClasseService
         return true;
     }
 
- public function getAvailableClasses($date, $startTime, $endTime){
-    $sql = "SELECT * FROM classes 
+    public function getAvailableClasses($date, $startTime, $endTime)
+    {
+        $sql = "SELECT * FROM classes 
             WHERE id NOT IN (SELECT class_id FROM courses) 
             AND id NOT IN (SELECT Classe_id FROM schedules 
                             WHERE date = :date 
@@ -55,12 +77,12 @@ class ClasseService
                                  OR end_time BETWEEN :startTime AND :endTime 
                                  OR (:startTime BETWEEN start_time AND end_time 
                                       AND :endTime BETWEEN start_time AND end_time)))";
-    $stmt = $this->pdo->prepare($sql);
-    $stmt->execute([
-        'date' => $date,
-        'startTime' => $startTime,
-        'endTime' => $endTime
-    ]);
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([
+            'date' => $date,
+            'startTime' => $startTime,
+            'endTime' => $endTime
+        ]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
