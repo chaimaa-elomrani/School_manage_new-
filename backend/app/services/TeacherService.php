@@ -15,10 +15,15 @@ class TeacherService{
     }
 
     public function listTeachers(){
-        $stmt = $this->pdo->prepare('SELECT * FROM teachers'); 
+        $stmt = $this->pdo->prepare('SELECT t.person_id , t.employee_number, t.specialty , p.first_name , p.last_name , p.email , p.phone, ct.classroom_id , c.name, c.academic_year
+         FROM teachers t JOIN classroom_teachers ct ON t.id = ct.teacher_id 
+         JOIN classrooms c ON ct.classroom_id = c.id 
+         JOIN person p ON t.person_id = p.id'); 
         $stmt->execute(); 
-        $teachers = $stmt->fetchAll(PDO::FETCH_ASSOC); 
-        return $teachers; 
+         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $teachers[] = new Teacher($row);
+        }
+        return $teachers;
     }
 
     public function getTeacherById($id){

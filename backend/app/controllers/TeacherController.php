@@ -23,8 +23,18 @@ class TeacherController
 
     public function listTeachers()
     {
-        $teachers = $this->teacherService->listTeachers();
-        return $teachers;
+          try {
+            $teachers = $this->teacherService->listTeachers();
+            // Convert students to an array of associative arrays if they are objects
+            $data = array_map(fn($teachers) => $teachers->toArray(), $teachers);
+
+            header('Content-Type: application/json');
+            echo json_encode(['data' => $data]); // Ensure the 'data' key matches frontend expectation
+        } catch (\Exception $e) {
+            http_response_code(500);
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Failed to fetch students', 'message' => $e->getMessage()]);
+        }
     }
 
     public function getTeacherById($id)
@@ -37,11 +47,11 @@ class TeacherController
         }
     }
 
-    public function delete($id)
-    {
-        $result = $this->teacherService->delete($id);
-        return $result;
-    }
+    // public function delete($id)
+    // {
+    //     $result = $this->teacherService->delete($id);
+    //     return $result;
+    // }
 
 
 

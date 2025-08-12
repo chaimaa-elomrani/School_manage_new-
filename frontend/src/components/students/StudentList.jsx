@@ -23,7 +23,7 @@ const StudentList = () => {
     prenom: '',
     email: '',
     telephone: '',
-    date_naissance: '',
+    classroom: '',
     adresse: '',
     password: ''
   });
@@ -92,7 +92,7 @@ const StudentList = () => {
         prenom: student.prenom || '',
         email: student.email || '',
         telephone: student.telephone || '',
-        date_naissance: student.date_naissance || '',
+        classroom: student.classroom || '',
         adresse: student.adresse || '',
         password: ''
       });
@@ -108,7 +108,7 @@ const StudentList = () => {
       prenom: '',
       email: '',
       telephone: '',
-      date_naissance: '',
+      classroom: '',
       adresse: '',
       password: ''
     });
@@ -228,13 +228,13 @@ const StudentList = () => {
                 
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="space-y-2">
-                    {student.date_naissance && (
+                    {student.classroom && (
                       <div className="flex items-center text-sm text-gray-900">
                         <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                         <span className="font-medium">
-                          {new Date(student.date_naissance).toLocaleDateString('en-US', {
+                          {new Date(student.classroom).toLocaleDateString('en-US', {
                             year: 'numeric',
                             month: 'short',
                             day: 'numeric'

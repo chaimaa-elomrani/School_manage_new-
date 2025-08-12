@@ -4,7 +4,7 @@ use Core\Router;
 use App\Controllers\AuthController;
 use App\Controllers\StudentController; // Assuming this is for basic student CRUD
 use App\Controllers\TeacherController; // Assuming this is for basic teacher CRUD
-use App\Controllers\RoomController;
+use App\Controllers\ClasseController;
 use App\Controllers\CourseController;
 use App\Controllers\ScheduleController;
 use App\Controllers\PlanningController;
@@ -19,7 +19,8 @@ use App\Controllers\FraisScolaireController;
 use App\Controllers\CommunicationController;
 use App\Controllers\ParentController; 
 use App\Services\EnhancedStudentService; 
-use App\Services\EnhancedTeacherService; 
+use App\Services\EnhancedTeacherService;
+use App\Controllers\ClassClasseController; 
 use Core\Db; 
 
 // --- Authentication Routes --- tested 
@@ -29,141 +30,91 @@ $router->post('/auth/logout', 'AuthController@logout');
 
 
 // --- Student Management Routes (Basic CRUD) ---
-$router->post('/createStudent', 'StudentController@create');
-$router->get('/showStudent', 'StudentController@getAll');
-$router->get('/showStudent/{id}', 'StudentController@getById');
-$router->post('/updateStudent/{id}', 'StudentController@update'); // Consider using PUT/PATCH
-$router->delete('/deleteStudent/{id}', 'StudentController@delete');
+$router->get('/showStudent', 'StudentController@listStudents');
+$router->get('/showStudent/{id}', 'StudentController@getStudentById');
+$router->delete('/deleteStudent', 'StudentController@delete');
 
 // --- Teacher Management Routes (Basic CRUD) ---
-$router->post('/createTeacher', 'TeacherController@create');
-$router->get('/showTeacher', 'TeacherController@getAll');
-$router->get('/showTeacher/{id}', 'TeacherController@getById');
-$router->post('/updateTeacher', 'TeacherController@update'); // Consider using PUT/PATCH
+$router->get('/showTeacher', 'TeacherController@listTeachers');
+$router->get('/showTeacher/{id}', 'TeacherController@getTeacherById');
 $router->delete('/deleteTeacher/{id}', 'TeacherController@delete');
 
-// --- Room Routes ---
-$router->post('/createRoom', 'RoomController@create');
-$router->get('/showRooms', 'RoomController@getAll');
-$router->get('/showRoom/{id}', 'RoomController@getById');
-$router->post('/updateRoom/{id}', 'RoomController@update'); // Consider using PUT/PATCH
-$router->delete('/deleteRoom/{id}', 'RoomController@delete');
+// --- classe Routes ---
+$router->post('/createClasse', 'ClasseController@create');
+$router->get('/showClasses', 'ClasseController@listClasses');
+$router->get('/showClasse/{id}', 'ClasseController@getClassById');
+$router->post('/updateClasse/{id}', 'ClasseController@update'); 
+$router->delete('/deleteClasse/{id}', 'ClasseController@delete');
+$router->get('/getAvailableClasses', 'ClasseController@getAvailableClasses');
+
+
+
 
 // --- Course Routes ---
-$router->post('/createCourse', 'CourseController@create');
-$router->get('/showCourses', 'CourseController@getAll');
-$router->get('/showCourse/{id}', 'CourseController@getById');
+$router->post('/createCourse', 'CourseController@createCourse');
+$router->get('/showCourses', 'CourseController@listCourses');
+$router->get('/showCourse/{id}', 'CourseController@getCourseById');
 $router->post('/updateCourse/{id}', 'CourseController@update'); // Consider using PUT/PATCH
-$router->delete('/deleteCourse/{id}', 'CourseController@delete');
-$router->get('/showSubjects', 'SubjectController@getAll'); // Assuming SubjectController exists
+$router->delete('/deleteCourse/{id}', 'CourseController@deleteCourse');
+
+
+
 
 // --- Schedule Routes ---
-$router->post('/createSchedule', 'ScheduleController@create');
-$router->get('/showSchedule/{id}', 'ScheduleController@getById');
-$router->post('/updateSchedule/{id}', 'ScheduleController@update'); // Consider using PUT/PATCH
-$router->delete('/deleteSchedule/{id}', 'ScheduleController@delete');
-$router->post('/checkAvailability', 'ScheduleController@checkAvailability');
-$router->get('/showSchedules', 'ScheduleController@index'); // Duplicate, keep one if needed
+$router->post('/schedules/plan', 'ScheduleController@planCourse');
+$router->get('/schedules', 'ScheduleController@listSchedules');
+$router->post('/schedules/conflicts', 'ScheduleController@getSchedulingConflicts');
 
-// --- Planning Routes ---
-$router->post('/createPlanning', 'PlanningController@create');
-$router->get('/showPlannings', 'PlanningController@getAll');
-$router->get('/showPlanning/{id}', 'PlanningController@getById');
-$router->post('/updatePlanning/{id}', 'PlanningController@update'); // Consider using PUT/PATCH
-$router->delete('/deletePlanning/{id}', 'PlanningController@delete');
-$router->get('/planning/check', 'PlanningController@checkAvailability'); // Duplicate, keep one if needed
-$router->get('/planning/conflicts', 'PlanningController@getConflicts');
 
 // --- Evaluation Routes ---
-$router->post('/createEvaluation', 'EvaluationsController@create');
-$router->get('/showEvaluations', 'EvaluationsController@getAll');
-$router->get('/showEvaluation/{id}', 'EvaluationsController@getById');
-$router->post('/updateEvaluation/{id}', 'EvaluationsController@update'); // Consider using PUT/PATCH
-$router->delete('/deleteEvaluation/{id}', 'EvaluationsController@delete');
+$router->post('/evaluations', 'EvaluationController@createEvaluation');
+$router->get('/evaluations', 'EvaluationController@listEvaluations');
+$router->get('/evaluations/{id}', 'EvaluationController@getEvaluationById'); // e.g., /evaluations/get?id=1
+$router->put('/evaluations', 'EvaluationController@updateEvaluation');
+$router->delete('/evaluations', 'EvaluationController@deleteEvaluation');
 
-// --- Grades Routes ---
-$router->post('/createGrade', 'GradesController@create');
-$router->get('/showGrade/{id}', 'GradesController@getById'); // Duplicate, keep one if needed
-$router->post('/updateGrade/{id}', 'GradesController@update'); // Consider using PUT/PATCH
-$router->delete('/deleteGrade/{id}', 'GradesController@delete');
-$router->get('/showGrades', 'GradesController@index'); // Duplicate, keep one if needed
+
+
+// --- Note Routes ---
+$router->post('/notes', 'NoteController@addNote');
+$router->put('/notes', 'NoteController@updateNote');
+$router->delete('/notes', 'NoteController@deleteNote');
+$router->get('/notes/get', 'NoteController@getNoteById'); // e.g., /notes/get?id=1
+$router->get('/notes/student', 'NoteController@getGradesByStudent'); // e.g., /notes/student?student_id=1
+$router->get('/notes/evaluation', 'NoteController@getGradesByEvaluation'); // e.g., /notes/evaluation?evaluation_id=1
 
 // --- Bulletin Routes ---
-$router->post('/createBulletin', 'BulletinController@create');
-$router->get('/showBulletins', 'BulletinController@getAll');
-$router->get('/showBulletin/{id}', 'BulletinController@getById');
-$router->post('/updateBulletin/{id}', 'BulletinController@update'); // Consider using PUT/PATCH
-$router->delete('/deleteBulletin/{id}', 'BulletinController@delete');
-$router->post('/bulletin/generate', 'BulletinController@generate'); // Duplicate, keep one if needed
-
-// --- Course-Schedule Strategy Routes ---
-$router->post('/course-schedule/create', 'CourseScheduleController@createScheduleForCourse');
-$router->get('/course-schedule/{courseId}', 'CourseScheduleController@getCourseSchedules');
+$router->get('/bulletin/generate', 'BulletinController@generateBulletin');
 
 // --- Notifications Routes ---
 $router->get('/notifications', 'NotificationController@getAll'); // Duplicate, keep one if needed
 
 // --- Student Payment Routes ---
-$router->post('/payments/student/create', 'PaiementEleveController@create');
-$router->get('/payments/student', 'PaiementEleveController@getAll');
-$router->get('/payments/student/{id}', 'PaiementEleveController@getById');
-$router->post('/payments/student/{id}/pay', 'PaiementEleveController@markAsPaid');
-$router->post('/payment/create', 'PaiementEleveController@create'); // Duplicate, keep one if needed
-$router->get('/payments', 'PaiementEleveController@getAll'); // Duplicate, keep one if needed
-$router->post('/payment/process', 'PaiementEleveController@processPayment');
-$router->get('/showPayments', 'PaiementEleveController@getAll'); // Duplicate, keep one if needed
+$router->post('/financial/payments/add', 'FinancialController@addStudentPayment');
+$router->post('/financial/salaries/add', 'FinancialController@addTeacherSalary');
+$router->get('/financial/payments', 'FinancialController@listStudentPayments');
+$router->get('/financial/salaries', 'FinancialController@listTeacherSalaries');
+$router->get('/financial/fees', 'FinancialController@listSchoolFees');
 
-// --- Teacher Salary Routes ---
-$router->post('/salaries/create', 'SalaireEnseignantController@create');
-$router->get('/salaries', 'SalaireEnseignantController@getAll');
-$router->get('/salaries/{id}', 'SalaireEnseignantController@getById');
-$router->post('/salaries/{id}/pay', 'SalaireEnseignantController@markAsPaid');
 
-// --- School Fees Routes ---
-$router->post('/school-fees/create', 'FraisScolaireController@create');
-$router->get('/school-fees', 'FraisScolaireController@getAll');
-$router->get('/school-fees/{id}', 'FraisScolaireController@getById');
 
-// --- Communication Routes ---
-$router->post('/communication/email', 'CommunicationController@sendEmailNotification');
-$router->post('/communication/sms', 'CommunicationController@sendSMSNotification');
-$router->post('/communication/message', 'CommunicationController@sendInternalMessage');
-$router->post('/communication/broadcast', 'CommunicationController@broadcastNotification');
+// --- Transaction Routes ---
+$router->get('/transactions', 'TransactionController@listTransactions');
+$router->get('/transactions/get', 'TransactionController@getTransactionById'); // e.g., /transactions/get?id=1
 
-// --- ENHANCED STUDENT DASHBOARD ROUTES (using EnhancedStudentService) ---
-$router->get('/student/profile/{id}', 'StudentController@getEnhancedProfile');
-$router->get('/student/teachers/{id}', 'StudentController@getEnhancedTeachers');
-$router->get('/student/schedule/{id}', 'StudentController@getEnhancedSchedule');
-$router->get('/student/grades/{id}', 'StudentController@getEnhancedGrades');
-$router->get('/student/payments/{id}', 'StudentController@getEnhancedPayments');
-$router->get('/student/assignments/{id}', 'StudentController@getEnhancedAssignments');
-$router->get('/student/announcements/{id}', 'StudentController@getEnhancedAnnouncements');
+$router->post('/subjects', 'SubjectController@createSubject');
+$router->get('/showSubjects', 'SubjectController@listSubjects');
+$router->put('/subjects', 'SubjectController@updateSubject');
+$router->delete('/subjects', 'SubjectController@deleteSubject');
 
-// --- ENHANCED TEACHER DASHBOARD ROUTES (using EnhancedTeacherService) ---
-$router->get('/teacher/courses/{id}', 'TeacherController@getEnhancedCourses');
-$router->get('/teacher/schedule/{id}', 'TeacherController@getEnhancedSchedule');
-$router->get('/teacher/students/{id}', 'TeacherController@getEnhancedStudents');
-$router->get('/teacher/grades/{id}', 'TeacherController@getEnhancedGrades');
-$router->get('/teacher/assignments/{id}', 'TeacherController@getEnhancedAssignments');
 
-// --- PARENT DASHBOARD ROUTES (using UpdatedParentController) ---
-$router->get('/parent/profile/{id}', 'ParentController@getProfile');
-$router->get('/parent/children/{id}', 'ParentController@getChildren');
-$router->get('/parent/child/grades/{id}', 'ParentController@getChildGrades');
-$router->get('/parent/child/schedule/{id}', 'ParentController@getChildSchedule');
-$router->get('/parent/child/stats/{id}', 'ParentController@getChildStats');
-$router->get('/parent/child/teachers/{id}', 'ParentController@getChildTeachers');
-$router->get('/parent/payments/{id}', 'ParentController@getPayments');
-$router->get('/parent/messages/{id}', 'ParentController@getMessages');
-$router->get('/parent/announcements/{id}', 'ParentController@getAnnouncements');
-$router->post('/parent/send-message', 'ParentController@sendMessage');
-
-// --- Other specific routes (review and remove if redundant) ---
-$router->get('/studentData/{id}' , 'StudentController@getStudentData'); // Likely redundant with /student/profile/{id}
-$router->get('/getStudentData/{id}', 'StudentController@getStudentData'); // Likely redundant
-$router->get('/getClassTeachers/{classId}', 'StudentController@getClassTeachers'); // Keep if needed for other parts
-$router->get('/getClassmates/{classId}', 'StudentController@getClassmates'); // Keep if needed for other parts
-$router->get('/getStudentSchedule/{studentId}', 'ScheduleController@getStudentSchedule'); // Redundant with /student/schedule/{id}
-$router->get('/getStudentEvaluations/{studentId}', 'EvaluationController@getStudentEvaluations'); // Redundant with /student/grades/{id}
-$router->get('/getStudentGrades/{studentId}', 'GradesController@getStudentGrades'); // Redundant with /student/grades/{id}
-// ... and so on for other duplicates.
+// -- --- Logical ClassClasse Routes ---
+$router->post('/classClasses', 'ClassClasseController@createClassClasse');
+$router->get('/classClasses', 'ClassClasseController@listClassClasses');
+$router->get('/classClasses/get', 'ClassClasseController@getById'); // e.g., /classClasses/get?id=1&with_students=true
+$router->put('/classClasses', 'ClassClasseController@update');
+$router->delete('/classClasses', 'ClassClasseController@delete');
+$router->post('/classClasses/assign-student', 'ClassClasseController@assignStudent');
+$router->delete('/classClasses/unassign-student', 'ClassClasseController@unassignStudent');
+$router->put('/classClasses/assign-teacher', 'ClassClasseController@assignTeacher'); // Using PUT for update
+$router->put('/classClasses/unassign-teacher', 'ClassClasseController@unassignTeacher');

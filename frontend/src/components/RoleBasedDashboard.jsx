@@ -1,8 +1,8 @@
 "use client"
 
 import { useAuth } from "../contexts/AuthContext"
-import EnhancedStudentDashboard from "./dashboards/EnhancedStudentDashboard"
-import EnhancedTeacherDashboard from "./dashboards/EnhancedTeacherDashboard"
+import StudentDashboard from "./dashboards/StudentDashboard"
+import TeacherDashboard from "./dashboards/TeacherDashboard"
 import ParentDashboard from "./dashboards/ParentDashboard"
 import AdminDashboard from "./dashboards/AdminDashboard" // Your existing admin dashboard
 
@@ -20,9 +20,9 @@ const RoleBasedDashboard = () => {
 
   switch (user?.role) {
     case "student":
-      return <EnhancedStudentDashboard />
+      return <StudentDashboard />
     case "teacher":
-      return <EnhancedTeacherDashboard />
+      return <TeacherDashboard />
     case "parent":
       return <ParentDashboard />
     case "admin":

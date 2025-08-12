@@ -13,6 +13,10 @@ class Person implements IPerson
     private $phone;
     private $role;
     private $password;
+
+    private $student_id; 
+    private $teacher_id;
+    private $parent_id;
     // Add properties for role-specific IDs if you want them explicitly
 
 

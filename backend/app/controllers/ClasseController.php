@@ -13,7 +13,7 @@ class ClasseController
             $this->ClasseService = $ClasseService;
         } else {
             $pdo = Db::connection();
-            $this->ClasseService = new ClasseService($pdo);
+            $this->ClasseService = new ClasseService();
         }
     }
 
@@ -24,6 +24,7 @@ class ClasseController
         return $result;
     }
 
+
     public function listClasses(){
         $classes = $this->ClasseService->listClasses();
         return $classes;
@@ -31,6 +32,11 @@ class ClasseController
 
     public function getClassById($id){
         $classe = $this->ClasseService->getClassById($id);
+        return $classe;
+    }
+
+    public function update($id){
+        $classe = $this->ClasseService->update($id);
         return $classe;
     }
 

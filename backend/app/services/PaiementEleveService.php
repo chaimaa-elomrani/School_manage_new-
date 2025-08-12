@@ -54,7 +54,7 @@ class PaiementEleveService
 
     public function getAll(): array
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM payments ORDER BY payment_date DESC');
+        $stmt = $this->pdo->prepare('SELECT * FROM paiements_eleves ');
         $stmt->execute();
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $payments = [];

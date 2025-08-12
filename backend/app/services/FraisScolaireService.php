@@ -42,7 +42,7 @@ class FraisScolaireService
 
     public function getAll(): array
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM school_fees ORDER BY name');
+        $stmt = $this->pdo->prepare('SELECT * FROM frais_scolaires ORDER BY name');
         $stmt->execute();
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $fees = [];

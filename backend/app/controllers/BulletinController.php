@@ -24,7 +24,7 @@ class BulletinController
         $noteService = new NoteService($pdo); 
         $this->bulletinGenerator = new BulletinGeneratorService($noteService);
         $this->studentService = new StudentService(); 
-        $this->courseService = new CourseService($pdo); 
+        $this->courseService = new CourseService(); 
     }
 
     /**

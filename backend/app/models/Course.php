@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 class Course
@@ -18,12 +17,12 @@ class Course
     private $teacher_name;
     private $subject_name;
     private $class_number;
-    private $requiredCapacity; 
+    private $specialty;
 
     public function __construct(array $data = [])
     {
         $this->id = $data['id'] ?? null;
-        $this->name = $data['title'] ?? '';
+        $this->title = $data['title'] ?? '';
         $this->description = $data['description'] ?? '';
         $this->subject_id = $data['subject_id'] ?? null;
         $this->teacher_id = $data['teacher_id'] ?? null;
@@ -36,6 +35,7 @@ class Course
         $this->teacher_name = $data['teacher_name'] ?? null;
         $this->subject_name = $data['subject_name'] ?? null;
         $this->class_number = $data['class_number'] ?? null;
+        $this->specialty = $data['specialty'] ?? null;
     }
 
     public function toArray(): array
@@ -50,9 +50,10 @@ class Course
             'duration' => $this->duration,
             'start_date' => $this->start_date,
             'end_date' => $this->end_date,
-            'teacher_name' => $this->teacher_name ?? null,
-            'subject_name' => $this->subject_name ?? null,
-            'classe_number' => $this->classe_number ?? null
+            'teacher_name' => $this->teacher_name,
+            'subject_name' => $this->subject_name,
+            'class_number' => $this->class_number,
+            'specialty' => $this->specialty
         ];
     }
 
@@ -60,6 +61,7 @@ class Course
     {
         return $this->id;
     }
+
     public function getTitle()
     {
         return $this->title;
@@ -70,34 +72,43 @@ class Course
         return $this->description;
     }
 
-    // Add missing methods for schedule strategy
     public function getTeacherId()
     {
-        return $this->teacher_id ?? null;
-    }
-    public function getClassNumber()
-    {
-        return $this->class_number ?? null;
-    }
-    public function getSubjectName()
-    {
-        return $this->subject_Name ?? null;
-    }
-    public function getDuration()
-    {
-        return $this->duration ?? null;
-    }
-    public function getCourseStartDate()
-    {
-        return $this->start_date ?? null;
-    }
-    public function getCourseEndDate()
-    {
-        return $this->end_date ?? null;
+        return $this->teacher_id;
     }
 
-    public function getRequiredCapacity()
+    public function getClassNumber()
     {
-        return $this->requiredCapacity ?? null;
+        return $this->class_number;
+    }
+
+    public function getSubjectName()
+    {
+        return $this->subject_name;
+    }
+
+    public function getDuration()
+    {
+        return $this->duration;
+    }
+
+    public function getCourseStartDate()
+    {
+        return $this->start_date;
+    }
+
+    public function getCourseEndDate()
+    {
+        return $this->end_date;
+    }
+
+    public function getTeacherName()
+    {
+        return $this->teacher_name;
+    }
+
+    public function getSpecialty()
+    {
+        return $this->specialty;
     }
 }

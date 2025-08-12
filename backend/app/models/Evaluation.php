@@ -6,6 +6,7 @@ class Evaluation{
     private $id;
     private $subject_id;
     private $teacher_id;
+    private $classroomId;
     private $title;
     private $date_evaluation;
 
@@ -14,6 +15,7 @@ class Evaluation{
         $this->subject_id = $data['subject_id'] ?? null;
         $this->title = $data['title'] ?? '';
         $this->teacher_id = $data['teacher_id'] ?? null;
+        $this->classroomId = $data['classroom_id'] ?? null;
         $this->date_evaluation = $data['date_evaluation'] ?? null;
     }
 
@@ -37,6 +39,9 @@ class Evaluation{
         return $this->teacher_id;
     }
 
+   public  function getClassroomId(){
+        return $this->classroomId;
+    }
 
     public function toArray() {
         return [
