@@ -75,6 +75,9 @@ export async function fetchStudentData(studentId) {
       api.get(`/showStudent/${studentId}`),
       api.get(`//showStudent/{id}/${studentId}`),
       api.get(`/deleteStudent/${studentId}`),
+      api.get(`/showStudent/${studentId}`),
+      api.get(`//showStudent/{id}/${studentId}`),
+      api.get(`/deleteStudent/${studentId}`),
     ])
     
     return {
@@ -86,6 +89,7 @@ export async function fetchStudentData(studentId) {
       assignments: assignmentsRes.data?.data || [],
       announcements: announcementsRes.data?.data || []
     }
+    
     
     
     
